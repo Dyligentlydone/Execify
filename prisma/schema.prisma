@@ -1,0 +1,499 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ──────────────────────────────
+// TENANCY & USERS
+// ──────────────────────────────
+
+model Organization {
+  id                   String   @id @default(cuid())
+  clerkOrgId           String   @unique
+  name                 String
+  slug                 String   @unique
+  plan                 Plan     @default(STARTER)
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  members          Membership[]
+  contacts         Contact[]
+  deals            Deal[]
+  dealStages       DealStage[]
+  tasks            Task[]
+  invoices         Invoice[]
+  recurringInvoices RecurringInvoice[]
+  notes            Note[]
+  activityLogs     ActivityLog[]
+  dashboardLayouts DashboardLayout[]
+  aiConversations  AIConversation[]
+  aiActionLogs     AIActionLog[]
+  integrations     Integration[]
+}
+
+enum Plan {
+  STARTER
+  PRO
+  EXECUTIVE
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  firstName   String?
+  lastName    String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships      Membership[]
+  createdContacts  Contact[]         @relation("ContactCreator")
+  createdDeals     Deal[]            @relation("DealCreator")
+  assignedTasks    Task[]            @relation("TaskAssignee")
+  createdTasks     Task[]            @relation("TaskCreator")
+  createdInvoices  Invoice[]         @relation("InvoiceCreator")
+  createdRecurring RecurringInvoice[] @relation("RecurringInvoiceCreator")
+  createdNotes     Note[]
+  activityLogs     ActivityLog[]
+  dashboardLayouts DashboardLayout[]
+  aiConversations  AIConversation[]
+  aiActionLogs     AIActionLog[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+// ──────────────────────────────
+// CRM
+// ──────────────────────────────
+
+model Contact {
+  id        String        @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  company   String?
+  title     String?
+  status    ContactStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  organizationId String
+  createdById    String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("ContactCreator", fields: [createdById], references: [id])
+
+  deals    Deal[]
+  invoices Invoice[]
+  recurringInvoices RecurringInvoice[]
+  notes    Note[]    @relation("ContactNotes")
+
+  @@index([organizationId])
+}
+
+enum ContactStatus {
+  ACTIVE
+  INACTIVE
+  LEAD
+  CUSTOMER
+}
+
+model DealStage {
+  id    String @id @default(cuid())
+  name  String
+  order Int
+  color String @default("#6366f1")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  deals Deal[]
+
+  @@unique([organizationId, order])
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  title             String
+  value             Decimal?
+  currency          String    @default("USD")
+  probability       Int?
+  expectedCloseDate DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organizationId String
+  contactId      String?
+  stageId        String
+  createdById    String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  stage          DealStage    @relation(fields: [stageId], references: [id])
+  createdBy      User         @relation("DealCreator", fields: [createdById], references: [id])
+
+  notes Note[] @relation("DealNotes")
+
+  @@index([organizationId])
+  @@index([stageId])
+}
+
+// ──────────────────────────────
+// TASKS
+// ──────────────────────────────
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  organizationId String
+  assigneeId     String?
+  createdById    String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignee       User?        @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy      User         @relation("TaskCreator", fields: [createdById], references: [id])
+
+  notes Note[] @relation("TaskNotes")
+
+  @@index([organizationId])
+  @@index([assigneeId])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ──────────────────────────────
+// INVOICES
+// ──────────────────────────────
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String
+  status        InvoiceStatus @default(DRAFT)
+  subtotal      Decimal
+  tax           Decimal       @default(0)
+  total         Decimal
+  currency      String        @default("USD")
+  dueDate       DateTime?
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  organizationId String
+  contactId      String?
+  createdById    String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  createdBy      User         @relation("InvoiceCreator", fields: [createdById], references: [id])
+
+  items InvoiceItem[]
+  recurringInvoiceId String?
+  recurringInvoice   RecurringInvoice? @relation(fields: [recurringInvoiceId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, invoiceNumber])
+  @@index([organizationId])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+  total       Decimal
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ──────────────────────────────
+// RECURRING INVOICES
+// ──────────────────────────────
+
+model RecurringInvoice {
+  id           String             @id @default(cuid())
+  name         String             // e.g., "Monthly Retainer"
+  status       RecurringStatus    @default(ACTIVE)
+  frequency    RecurringFrequency
+  interval     Int                @default(1) // Every 1 month, every 2 weeks, etc.
+  startDate    DateTime
+  endDate      DateTime?
+  nextRunDate  DateTime
+  
+  // Invoice details (to be copied to the generated invoice)
+  subtotal     Decimal
+  tax          Decimal            @default(0)
+  total        Decimal
+  currency     String             @default("USD")
+  notes        String?
+
+  organizationId String
+  contactId      String?
+  createdById    String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  createdBy      User             @relation("RecurringInvoiceCreator", fields: [createdById], references: [id])
+
+  items        RecurringInvoiceItem[]
+  generatedInvoices Invoice[]
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@index([nextRunDate])
+}
+
+model RecurringInvoiceItem {
+  id                 String  @id @default(cuid())
+  description        String
+  quantity           Decimal
+  unitPrice          Decimal
+  total              Decimal
+  recurringInvoiceId String
+  recurringInvoice   RecurringInvoice @relation(fields: [recurringInvoiceId], references: [id], onDelete: Cascade)
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+// ──────────────────────────────
+// NOTES & ACTIVITY
+// ──────────────────────────────
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  createdById    String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation(fields: [createdById], references: [id])
+
+  // Polymorphic via optional FKs
+  contactId String?
+  dealId    String?
+  taskId    String?
+  contact   Contact? @relation("ContactNotes", fields: [contactId], references: [id], onDelete: Cascade)
+  deal      Deal?    @relation("DealNotes", fields: [dealId], references: [id], onDelete: Cascade)
+  task      Task?    @relation("TaskNotes", fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  organizationId String
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+}
+
+// ──────────────────────────────
+// DASHBOARD
+// ──────────────────────────────
+
+model DashboardLayout {
+  id        String   @id @default(cuid())
+  name      String   @default("Default")
+  isDefault Boolean  @default(false)
+  layout    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  widgets Widget[]
+
+  @@index([organizationId, userId])
+}
+
+model Widget {
+  id                String          @id @default(cuid())
+  type              String
+  config            Json?
+  dashboardLayoutId String
+  dashboardLayout   DashboardLayout @relation(fields: [dashboardLayoutId], references: [id], onDelete: Cascade)
+}
+
+// ──────────────────────────────
+// AI
+// ──────────────────────────────
+
+model AIConversation {
+  id        String   @id @default(cuid())
+  title     String   @default("New Conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages AIMessage[]
+}
+
+model AIMessage {
+  id        String        @id @default(cuid())
+  role      AIMessageRole
+  content   String
+  toolCalls Json?
+  createdAt DateTime      @default(now())
+
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+enum AIMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+model AIActionLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String?
+  entityId   String?
+  input      Json?
+  result     Json?
+  createdAt  DateTime @default(now())
+
+  organizationId String
+  userId         String
+  conversationId String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+}
+
+// ──────────────────────────────
+// INTEGRATIONS
+// ──────────────────────────────
+
+model Integration {
+  id          String            @id @default(cuid())
+  type        IntegrationType
+  status      IntegrationStatus @default(INACTIVE)
+  credentials Json?
+  config      Json?
+  lastSyncAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  syncLogs IntegrationSyncLog[]
+
+  @@unique([organizationId, type])
+}
+
+enum IntegrationType {
+  STRIPE
+  TWILIO
+  QUICKBOOKS
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+model IntegrationSyncLog {
+  id            String    @id @default(cuid())
+  status        String
+  recordsSynced Int       @default(0)
+  errors        Json?
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+}
