@@ -11,7 +11,9 @@ import {
     Clock,
     Hash,
     User as UserIcon,
-    ArrowRight
+    ArrowRight,
+    StopCircle,
+    Trash2
 } from "lucide-react";
 import {
     ColumnDef,
@@ -38,7 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import type { RecurringInvoice, Contact, RecurringInvoiceItem } from "@/generated/prisma/client";
-import { pauseRecurringInvoice } from "@/server/actions/recurring-invoices";
+import { pauseRecurringInvoice, cancelRecurringInvoice, deleteRecurringInvoice } from "@/server/actions/recurring-invoices";
 
 type RecurringWithDetails = RecurringInvoice & {
     contact: Contact | null;
@@ -61,6 +63,34 @@ export function RecurringInvoiceList({ data }: { data: RecurringWithDetails[] })
             setTemplates(data); // Revert
         } else {
             toast.success(isPaused ? "Subscription resumed" : "Subscription paused");
+        }
+    };
+
+    const handleCancel = async (template: RecurringWithDetails) => {
+        // Optimistic update
+        setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, status: "CANCELLED" as any } : t));
+
+        const res = await cancelRecurringInvoice(template.id);
+        if (res?.error) {
+            toast.error(typeof res.error === "string" ? res.error : "Failed to cancel subscription");
+            setTemplates(data); // Revert
+        } else {
+            toast.success("Subscription cancelled");
+        }
+    };
+
+    const handleDelete = async (template: RecurringWithDetails) => {
+        if (!confirm(`Delete "${template.name}" permanently? This cannot be undone.`)) return;
+
+        // Optimistic removal
+        setTemplates(prev => prev.filter(t => t.id !== template.id));
+
+        const res = await deleteRecurringInvoice(template.id);
+        if (res?.error) {
+            toast.error(typeof res.error === "string" ? res.error : "Failed to delete subscription");
+            setTemplates(data); // Revert
+        } else {
+            toast.success("Subscription deleted");
         }
     };
 
@@ -121,10 +151,16 @@ export function RecurringInvoiceList({ data }: { data: RecurringWithDetails[] })
             header: "Status",
             cell: ({ row }) => {
                 const status = row.original.status;
+                const variants: Record<string, string> = {
+                    ACTIVE: "bg-green-500 hover:bg-green-600",
+                    PAUSED: "bg-amber-500 hover:bg-amber-600",
+                    CANCELLED: "bg-red-500 hover:bg-red-600",
+                    COMPLETED: "bg-blue-500 hover:bg-blue-600",
+                };
                 return (
                     <Badge
                         variant={status === "ACTIVE" ? "default" : "outline"}
-                        className={status === "ACTIVE" ? "bg-green-500 hover:bg-green-600" : ""}
+                        className={variants[status] || ""}
                     >
                         {status}
                     </Badge>
@@ -136,6 +172,8 @@ export function RecurringInvoiceList({ data }: { data: RecurringWithDetails[] })
             cell: ({ row }) => {
                 const template = row.original;
                 const isPaused = template.status === "PAUSED";
+                const isCancelled = template.status === "CANCELLED";
+                const isActive = template.status === "ACTIVE";
 
                 return (
                     <DropdownMenu>
@@ -146,20 +184,30 @@ export function RecurringInvoiceList({ data }: { data: RecurringWithDetails[] })
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Template Options</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(template)}>
-                                {isPaused ? (
-                                    <>
-                                        <Play className="mr-2 h-4 w-4 text-green-500" /> Resume Billing
-                                    </>
-                                ) : (
-                                    <>
-                                        <Pause className="mr-2 h-4 w-4 text-amber-500" /> Pause Billing
-                                    </>
-                                )}
-                            </DropdownMenuItem>
+                            {(isActive || isPaused) && (
+                                <DropdownMenuItem onClick={() => handleToggleStatus(template)}>
+                                    {isPaused ? (
+                                        <>
+                                            <Play className="mr-2 h-4 w-4 text-green-500" /> Resume Billing
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Pause className="mr-2 h-4 w-4 text-amber-500" /> Pause Billing
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                            )}
+                            {!isCancelled && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleCancel(template)} className="text-red-500">
+                                        <StopCircle className="mr-2 h-4 w-4" /> Stop Subscription
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-500">
-                                Stop Subscription
+                            <DropdownMenuItem onClick={() => handleDelete(template)} className="text-red-600 focus:text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete Permanently
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

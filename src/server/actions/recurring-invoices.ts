@@ -130,6 +130,50 @@ export async function pauseRecurringInvoice(id: string, pause: boolean) {
     }
 }
 
+export async function cancelRecurringInvoice(id: string) {
+    const { organizationId } = await withTenantScope();
+
+    try {
+        const existing = await db.recurringInvoice.findUnique({ where: { id } });
+        if (!existing || existing.organizationId !== organizationId) {
+            return { error: "Template not found" };
+        }
+
+        await db.recurringInvoice.update({
+            where: { id },
+            data: { status: "CANCELLED" }
+        });
+
+        revalidatePath("/dashboard/invoices");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to cancel recurring invoice:", error);
+        return { error: "Failed to cancel subscription" };
+    }
+}
+
+export async function deleteRecurringInvoice(id: string) {
+    const { organizationId } = await withTenantScope();
+
+    try {
+        const existing = await db.recurringInvoice.findUnique({ where: { id } });
+        if (!existing || existing.organizationId !== organizationId) {
+            return { error: "Template not found" };
+        }
+
+        // Delete cascades to RecurringInvoiceItem via schema onDelete: Cascade
+        await db.recurringInvoice.delete({
+            where: { id }
+        });
+
+        revalidatePath("/dashboard/invoices");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete recurring invoice:", error);
+        return { error: "Failed to delete subscription" };
+    }
+}
+
 /**
  * Process all due recurring invoices. 
  * In production, this would be called by a cron job (e.g., Vercel Cron or GitHub Action).
