@@ -10,6 +10,7 @@ import {
     Handshake,
     CheckSquare,
     FileText,
+    DollarSign,
     Bot,
     Settings,
     Menu,
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
     { label: "Deals", href: "/dashboard/deals", icon: Handshake },
     { label: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { label: "Invoices", href: "/dashboard/invoices", icon: FileText },
+    { label: "Financials", href: "/dashboard/financials", icon: DollarSign },
     { label: "AI Assistant", href: "/dashboard/ai", icon: Bot },
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

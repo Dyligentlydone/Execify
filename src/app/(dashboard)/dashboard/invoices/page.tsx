@@ -13,11 +13,15 @@ export default async function InvoicesPage() {
     // Process any due recurring invoices on load (Simulated Cron)
     await processRecurringBilling();
 
-    const [invoices, contacts, recurring] = await Promise.all([
+    const [invoicesRaw, contacts, recurringRaw] = await Promise.all([
         getInvoices(),
         getContacts(),
         getRecurringInvoices(),
     ]);
+
+    // Serialize to strip Prisma Decimal/Date objects that can't be passed to client components
+    const invoices = JSON.parse(JSON.stringify(invoicesRaw));
+    const recurring = JSON.parse(JSON.stringify(recurringRaw));
 
     return (
         <div className="space-y-6">

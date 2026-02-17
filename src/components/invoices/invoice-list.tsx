@@ -32,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { Invoice, Contact, InvoiceStatus, InvoiceItem } from "@/generated/prisma/client";
 import { updateInvoiceStatus, deleteInvoice } from "@/server/actions/invoices";
+import { EditInvoiceDialog } from "@/components/invoices/edit-invoice-dialog";
 
 type InvoiceWithDetails = Invoice & { contact: Contact | null, items: InvoiceItem[] };
 
@@ -159,6 +160,10 @@ export function InvoiceList({ data }: { data: InvoiceWithDetails[] }) {
                                 Copy Invoice ID
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <EditInvoiceDialog
+                                invoice={invoice}
+                                onUpdated={() => window.location.reload()}
+                            />
                             {invoice.status === "DRAFT" && (
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(invoice, "SENT")}>
                                     <Send className="mr-2 h-4 w-4 text-blue-500" /> Mark as Sent

@@ -10,6 +10,7 @@ import {
     Handshake,
     CheckSquare,
     FileText,
+    DollarSign,
     Bot,
     Settings,
     ChevronLeft,
@@ -49,6 +50,11 @@ const NAV_ITEMS = [
         label: "Invoices",
         href: "/dashboard/invoices",
         icon: FileText,
+    },
+    {
+        label: "Financials",
+        href: "/dashboard/financials",
+        icon: DollarSign,
     },
     {
         label: "AI Assistant",

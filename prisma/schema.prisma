@@ -37,6 +37,7 @@ model Organization {
   aiConversations  AIConversation[]
   aiActionLogs     AIActionLog[]
   integrations     Integration[]
+  expenses         Expense[]
 }
 
 enum Plan {
@@ -67,6 +68,7 @@ model User {
   dashboardLayouts DashboardLayout[]
   aiConversations  AIConversation[]
   aiActionLogs     AIActionLog[]
+  createdExpenses  Expense[]         @relation("ExpenseCreator")
 }
 
 model Membership {
@@ -113,6 +115,7 @@ model Contact {
   deals    Deal[]
   invoices Invoice[]
   recurringInvoices RecurringInvoice[]
+  expenses Expense[] @relation("ContactExpenses")
   notes    Note[]    @relation("ContactNotes")
 
   @@index([organizationId])
@@ -496,4 +499,45 @@ model IntegrationSyncLog {
 
   integrationId String
   integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+}
+
+// ──────────────────────────────
+// FINANCIALS
+// ──────────────────────────────
+
+enum ExpenseType {
+  ONE_TIME
+  RECURRING
+}
+
+model Expense {
+  id          String      @id @default(cuid())
+  description String
+  amount      Decimal
+  date        DateTime
+  type        ExpenseType @default(ONE_TIME)
+  category    String      // preset or custom category
+  vendor      String?
+  notes       String?
+  receiptUrl  String?
+
+  // Recurring fields (null for one-time)
+  frequency   RecurringFrequency?
+  interval    Int?        @default(1)
+  isActive    Boolean     @default(true)
+
+  organizationId String
+  createdById    String
+  contactId      String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("ExpenseCreator", fields: [createdById], references: [id])
+  contact        Contact?     @relation("ContactExpenses", fields: [contactId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([organizationId, date])
+  @@index([organizationId, category])
+  @@index([organizationId, contactId])
 }

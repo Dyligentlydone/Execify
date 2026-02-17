@@ -128,6 +128,75 @@ export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
     }
 }
 
+const updateInvoiceSchema = z.object({
+    dueDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
+    items: z.array(z.object({
+        id: z.string().optional(),
+        description: z.string().min(1, "Description is required"),
+        quantity: z.coerce.number().min(1),
+        unitPrice: z.coerce.number().min(0),
+    })).min(1, "At least one item is required"),
+});
+
+export async function updateInvoice(id: string, formData: FormData) {
+    const { organizationId } = await withTenantScope();
+
+    const existing = await db.invoice.findUnique({ where: { id }, include: { items: true } });
+    if (!existing || existing.organizationId !== organizationId) {
+        return { error: "Invoice not found" };
+    }
+
+    let items: any[];
+    try {
+        items = JSON.parse(formData.get("items") as string);
+    } catch {
+        return { error: "Invalid items format" };
+    }
+
+    const parseResult = updateInvoiceSchema.safeParse({
+        dueDate: formData.get("dueDate") as string || undefined,
+        items,
+    });
+
+    if (!parseResult.success) {
+        return { error: parseResult.error.flatten().fieldErrors };
+    }
+
+    const { dueDate, items: validItems } = parseResult.data;
+
+    try {
+        const subtotal = validItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        const total = subtotal + Number(existing.tax);
+
+        // Delete existing items and recreate
+        await db.invoiceItem.deleteMany({ where: { invoiceId: id } });
+
+        await db.invoice.update({
+            where: { id },
+            data: {
+                ...(dueDate && { dueDate }),
+                subtotal,
+                total,
+                items: {
+                    create: validItems.map(item => ({
+                        description: item.description,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        total: item.quantity * item.unitPrice,
+                    })),
+                },
+            },
+        });
+
+        revalidatePath("/dashboard/invoices");
+        revalidatePath("/dashboard/financials");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update invoice:", error);
+        return { error: "Failed to update invoice" };
+    }
+}
+
 export async function deleteInvoice(id: string) {
     const { organizationId } = await withTenantScope();
 
