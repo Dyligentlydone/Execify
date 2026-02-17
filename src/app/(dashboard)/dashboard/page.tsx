@@ -1,4 +1,8 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { Plan } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +20,27 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getDashboardStats } from "@/server/actions/stats";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+    searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+    const user = await getCurrentUser();
+
+    // Handle Plan Selection from Onboarding
+    const planParam = searchParams?.plan as string;
+    if (user?.organizationId && planParam) {
+        const plan = planParam.toUpperCase() as Plan;
+        if (Object.values(Plan).includes(plan)) {
+            await db.organization.update({
+                where: { id: user.organizationId },
+                data: { plan },
+            });
+            // Clear the param to avoid re-running
+            redirect("/dashboard");
+        }
+    }
+
     const stats = await getDashboardStats();
 
     const STATS = [

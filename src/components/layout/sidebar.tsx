@@ -15,6 +15,7 @@ import {
     Settings,
     ChevronLeft,
     ChevronRight,
+    CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,11 @@ const NAV_ITEMS = [
 ];
 
 const BOTTOM_NAV = [
+    {
+        label: "Billing",
+        href: "/dashboard/settings/billing",
+        icon: CreditCard,
+    },
     {
         label: "Settings",
         href: "/dashboard/settings",

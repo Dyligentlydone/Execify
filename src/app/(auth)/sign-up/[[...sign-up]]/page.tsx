@@ -1,6 +1,15 @@
+"use client";
+
 import { SignUp } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
+    const searchParams = useSearchParams();
+    const plan = searchParams.get("plan");
+
+    // Pass the plan to the onboarding page via redirect
+    const redirectUrl = plan ? `/onboarding?plan=${plan}` : "/onboarding";
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-background">
             <div className="mx-auto w-full max-w-md space-y-6 px-4">
@@ -12,10 +21,11 @@ export default function SignUpPage() {
                         <span className="text-2xl font-bold tracking-tight">Execify</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        Create your business command center
+                        {plan ? `Create your account to start your ${plan} plan` : "Create your business command center"}
                     </p>
                 </div>
                 <SignUp
+                    forceRedirectUrl={redirectUrl}
                     appearance={{
                         elements: {
                             card: "bg-card border border-border shadow-xl",

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantScope } from "@/lib/tenant";
+import { PLANS } from "@/lib/stripe";
 
 const createContactSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
@@ -95,6 +96,21 @@ export async function createContact(formData: FormData) {
         // It doesn't have `create`. We should use `db.contact.create` directly but inject `organizationId`.
 
         const { db } = await import("@/lib/db");
+
+        // Check Plan Limits
+        const org = await db.organization.findUnique({
+            where: { id: organizationId },
+            select: { plan: true },
+        });
+
+        const currentPlan = org?.plan ? PLANS[org.plan as keyof typeof PLANS] : PLANS.STARTER;
+        const contactCount = await db.contact.count({
+            where: { organizationId },
+        });
+
+        if (contactCount >= currentPlan.limits.contacts) {
+            return { error: "Contact limit reached. Please upgrade your plan." };
+        }
 
         const contact = await db.contact.create({
             data: {

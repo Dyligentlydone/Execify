@@ -85,7 +85,7 @@ export default function LandingPage() {
               asChild
               className="gold-surface border-0"
             >
-              <Link href="/sign-up">
+              <Link href="/pricing">
                 Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -102,12 +102,6 @@ export default function LandingPage() {
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <Badge
-            variant="secondary"
-            className="mb-6 px-4 py-1.5 text-sm font-medium"
-          >
-            🚀 AI-Powered Business Operations
-          </Badge>
           <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Your Business,{" "}
             <span className="gold-text">
@@ -126,7 +120,7 @@ export default function LandingPage() {
               asChild
               className="gold-surface border-0 px-8 text-base h-12"
             >
-              <Link href="/sign-up">
+              <Link href="/pricing">
                 Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -269,7 +263,7 @@ export default function LandingPage() {
               asChild
               className="relative mt-8 bg-black text-[#f6e27a] hover:bg-black/90 hover:shadow-lg hover:shadow-[#cb9b51]/30 h-12 px-8 text-base font-semibold transition-all"
             >
-              <Link href="/sign-up">
+              <Link href="/pricing">
                 Start Your Free Trial <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
