@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+
+export const dynamic = "force-dynamic";
+
 import { getContacts } from "@/server/actions/contacts";
 import { CreateContactDialog } from "@/components/crm/create-contact-dialog";
 import { ContactList } from "@/components/crm/contact-list";

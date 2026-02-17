@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+
+export const dynamic = "force-dynamic";
+
 import { getTasks } from "@/server/actions/tasks";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskList } from "@/components/tasks/task-list";

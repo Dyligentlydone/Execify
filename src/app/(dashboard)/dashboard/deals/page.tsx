@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+
+export const dynamic = "force-dynamic";
+
 import { getDeals } from "@/server/actions/deals";
 import { CreateDealDialog } from "@/components/crm/create-deal-dialog";
 import { DealBoard } from "@/components/crm/deal-board";

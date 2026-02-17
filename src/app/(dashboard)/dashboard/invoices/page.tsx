@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+
+export const dynamic = "force-dynamic";
+
 import { getInvoices } from "@/server/actions/invoices";
 import { getContacts } from "@/server/actions/contacts";
 import { getRecurringInvoices, processRecurringBilling } from "@/server/actions/recurring-invoices";
