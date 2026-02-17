@@ -72,7 +72,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg gold-icon text-sm font-bold text-black">
               E
             </div>
             <span className="text-lg font-bold tracking-tight">Execify</span>
@@ -83,7 +83,7 @@ export default function LandingPage() {
             </Button>
             <Button
               asChild
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0"
+              className="gold-surface border-0"
             >
               <Link href="/sign-up">
                 Get Started <ArrowRight className="ml-1 h-4 w-4" />
@@ -97,7 +97,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32">
         {/* Background gradient effects */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gradient-to-br from-[#cb9b51]/20 via-[#8b6914]/10 to-transparent blur-3xl" />
           <div className="absolute bottom-0 right-0 h-[400px] w-[600px] rounded-full bg-gradient-to-bl from-cyan-500/10 to-transparent blur-3xl" />
         </div>
 
@@ -110,7 +110,7 @@ export default function LandingPage() {
           </Badge>
           <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Your Business,{" "}
-            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="gold-text">
               One Command
             </span>{" "}
             Center
@@ -124,7 +124,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               asChild
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 px-8 text-base h-12"
+              className="gold-surface border-0 px-8 text-base h-12"
             >
               <Link href="/sign-up">
                 Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
@@ -143,7 +143,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Everything you need to{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="gold-text-simple">
                 run your business
               </span>
             </h2>
@@ -201,13 +201,13 @@ export default function LandingPage() {
               <Card
                 key={plan.key}
                 className={`relative overflow-hidden transition-all ${plan.popular
-                    ? "border-indigo-500/50 shadow-lg shadow-indigo-500/10 scale-105"
-                    : "border-border/50"
+                  ? "gold-border-glow scale-105"
+                  : "border-border/50"
                   }`}
               >
                 {plan.popular && (
                   <div className="absolute top-0 right-0">
-                    <Badge className="rounded-none rounded-bl-lg bg-gradient-to-r from-indigo-500 to-purple-600 border-0 text-white">
+                    <Badge className="rounded-none rounded-bl-lg gold-surface border-0">
                       Most Popular
                     </Badge>
                   </div>
@@ -237,8 +237,8 @@ export default function LandingPage() {
                   </ul>
                   <Button
                     className={`w-full ${plan.popular
-                        ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0"
-                        : ""
+                      ? "gold-surface border-0"
+                      : ""
                       }`}
                     variant={plan.popular ? "default" : "outline"}
                     asChild
@@ -255,19 +255,19 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 px-6 py-16 text-center sm:px-12 sm:py-24">
+          <div className="relative overflow-hidden rounded-3xl gold-surface-cta px-6 py-16 text-center sm:px-12 sm:py-24">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDU2IDAgTCAyOCA1MCBMIDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNncmlkKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-30" />
-            <h2 className="relative text-3xl font-bold text-white sm:text-4xl">
+            <h2 className="relative text-3xl font-bold text-black sm:text-4xl">
               Ready to take command?
             </h2>
-            <p className="relative mt-4 text-lg text-white/80 max-w-xl mx-auto">
+            <p className="relative mt-4 text-lg text-black/70 max-w-xl mx-auto">
               Join forward-thinking business leaders who manage everything from
               one intelligent dashboard.
             </p>
             <Button
               size="lg"
               asChild
-              className="relative mt-8 bg-white text-indigo-600 hover:bg-white/90 h-12 px-8 text-base font-semibold"
+              className="relative mt-8 bg-black text-[#f6e27a] hover:bg-black/90 hover:shadow-lg hover:shadow-[#cb9b51]/30 h-12 px-8 text-base font-semibold transition-all"
             >
               <Link href="/sign-up">
                 Start Your Free Trial <ArrowRight className="ml-2 h-4 w-4" />
@@ -282,7 +282,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
+              <div className="flex h-6 w-6 items-center justify-center rounded gold-icon text-xs font-bold text-black">
                 E
               </div>
               <span className="text-sm font-semibold">Execify</span>

@@ -71,10 +71,12 @@ export default async function DashboardPage() {
                             <CardTitle className="text-sm font-medium">
                                 {stat.title}
                             </CardTitle>
-                            <stat.icon className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg gold-icon">
+                                <stat.icon className="h-4 w-4 text-black" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
+                            <div className="text-2xl font-bold gold-text-simple">{stat.value}</div>
                             <div className="flex items-center text-xs text-muted-foreground mt-1">
                                 {stat.trend === 'up' ? <TrendingUp className="mr-1 h-3 w-3 text-green-500" /> :
                                     stat.trend === 'down' ? <TrendingUp className="mr-1 h-3 w-3 text-red-500 rotate-180" /> :
@@ -111,24 +113,24 @@ export default async function DashboardPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-2">
-                        <Button className="w-full justify-start h-10" variant="outline" asChild>
+                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
                             <a href="/contacts">
-                                <Users className="mr-2 h-4 w-4 text-blue-500" /> Add Contact
+                                <Users className="mr-2 h-4 w-4" /> Add Contact
                             </a>
                         </Button>
-                        <Button className="w-full justify-start h-10" variant="outline" asChild>
+                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
                             <a href="/deals">
-                                <Briefcase className="mr-2 h-4 w-4 text-purple-500" /> Create Deal
+                                <Briefcase className="mr-2 h-4 w-4" /> Create Deal
                             </a>
                         </Button>
-                        <Button className="w-full justify-start h-10" variant="outline" asChild>
+                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
                             <a href="/tasks">
-                                <ListTodo className="mr-2 h-4 w-4 text-amber-500" /> Add Task
+                                <ListTodo className="mr-2 h-4 w-4" /> Add Task
                             </a>
                         </Button>
-                        <Button className="w-full justify-start h-10" variant="outline" asChild>
+                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
                             <a href="/invoices">
-                                <DollarSign className="mr-2 h-4 w-4 text-green-500" /> Create Invoice
+                                <DollarSign className="mr-2 h-4 w-4" /> Create Invoice
                             </a>
                         </Button>
                     </CardContent>
