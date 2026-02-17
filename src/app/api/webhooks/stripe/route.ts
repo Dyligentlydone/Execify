@@ -8,6 +8,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Plan } from "@/generated/prisma/client";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
     const body = await req.text();
     const headerPayload = await headers();

@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_DEAL_STAGES = [
     { name: "Lead", order: 1, color: "#6366f1" },
     { name: "Qualified", order: 2, color: "#8b5cf6" },
