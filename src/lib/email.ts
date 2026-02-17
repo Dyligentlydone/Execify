@@ -1,36 +1,36 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = new Resend(process.env.RESEND_API_KEY || "dummy_key_for_build");
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "hello@execify.com";
 
 type SendEmailOptions = {
-    to: string | string[];
-    subject: string;
-    html: string;
-    text?: string;
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
 };
 
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
-    try {
-        const { data, error } = await resend.emails.send({
-            from: `Execify <${FROM_EMAIL}>`,
-            to: Array.isArray(to) ? to : [to],
-            subject,
-            html,
-            text,
-        });
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `Execify <${FROM_EMAIL}>`,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+      text,
+    });
 
-        if (error) {
-            console.error("[Email] Failed to send:", error);
-            throw error;
-        }
-
-        return data;
-    } catch (err) {
-        console.error("[Email] Error:", err);
-        throw err;
+    if (error) {
+      console.error("[Email] Failed to send:", error);
+      throw error;
     }
+
+    return data;
+  } catch (err) {
+    console.error("[Email] Error:", err);
+    throw err;
+  }
 }
 
 // ──────────────────────────────
@@ -38,10 +38,10 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
 // ──────────────────────────────
 
 export async function sendWelcomeEmail(email: string, firstName: string) {
-    return sendEmail({
-        to: email,
-        subject: "Welcome to Execify 🚀",
-        html: `
+  return sendEmail({
+    to: email,
+    subject: "Welcome to Execify 🚀",
+    html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">Welcome to Execify, ${firstName}!</h1>
         <p style="color: #52525b; line-height: 1.6;">
@@ -56,18 +56,18 @@ export async function sendWelcomeEmail(email: string, firstName: string) {
         </a>
       </div>
     `,
-    });
+  });
 }
 
 export async function sendOrgInviteEmail(
-    email: string,
-    orgName: string,
-    inviterName: string
+  email: string,
+  orgName: string,
+  inviterName: string
 ) {
-    return sendEmail({
-        to: email,
-        subject: `You've been invited to ${orgName} on Execify`,
-        html: `
+  return sendEmail({
+    to: email,
+    subject: `You've been invited to ${orgName} on Execify`,
+    html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">You're invited!</h1>
         <p style="color: #52525b; line-height: 1.6;">
@@ -81,19 +81,19 @@ export async function sendOrgInviteEmail(
         </a>
       </div>
     `,
-    });
+  });
 }
 
 export async function sendInvoiceReceiptEmail(
-    email: string,
-    invoiceNumber: string,
-    total: string,
-    currency: string
+  email: string,
+  invoiceNumber: string,
+  total: string,
+  currency: string
 ) {
-    return sendEmail({
-        to: email,
-        subject: `Invoice ${invoiceNumber} — Receipt`,
-        html: `
+  return sendEmail({
+    to: email,
+    subject: `Invoice ${invoiceNumber} — Receipt`,
+    html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">Invoice Receipt</h1>
         <p style="color: #52525b; line-height: 1.6;">
@@ -110,17 +110,17 @@ export async function sendInvoiceReceiptEmail(
         </a>
       </div>
     `,
-    });
+  });
 }
 
 export async function sendSubscriptionUpdateEmail(
-    email: string,
-    planName: string
+  email: string,
+  planName: string
 ) {
-    return sendEmail({
-        to: email,
-        subject: `Your Execify plan has been updated`,
-        html: `
+  return sendEmail({
+    to: email,
+    subject: `Your Execify plan has been updated`,
+    html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">Plan Updated</h1>
         <p style="color: #52525b; line-height: 1.6;">
@@ -134,14 +134,14 @@ export async function sendSubscriptionUpdateEmail(
         </a>
       </div>
     `,
-    });
+  });
 }
 
 export async function sendPaymentFailedEmail(email: string) {
-    return sendEmail({
-        to: email,
-        subject: "Action required: Payment failed",
-        html: `
+  return sendEmail({
+    to: email,
+    subject: "Action required: Payment failed",
+    html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #dc2626;">Payment Failed</h1>
         <p style="color: #52525b; line-height: 1.6;">
@@ -156,5 +156,5 @@ export async function sendPaymentFailedEmail(email: string) {
         </a>
       </div>
     `,
-    });
+  });
 }
