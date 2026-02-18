@@ -110,9 +110,10 @@ export default function LandingPage() {
             Center
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            The modular, AI-first operating system for business owners and
-            executives. Manage CRM, finances, tasks, and operations from a
-            single, customizable dashboard.
+            A future proof command center that brings your customer relations, finances, operations and more into one powerful dashboard.
+            <br />
+            <br />
+            <span className="italic">-Execuaide, your intelligent executive aide, always on.</span>
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button
@@ -121,7 +122,7 @@ export default function LandingPage() {
               className="gold-surface border-0 px-8 text-base h-12"
             >
               <Link href="/pricing">
-                Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+                Get Started <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="h-12 px-8 text-base">
@@ -255,8 +256,7 @@ export default function LandingPage() {
               Ready to take command?
             </h2>
             <p className="relative mt-4 text-lg text-black/70 max-w-xl mx-auto">
-              Join forward-thinking business leaders who manage everything from
-              one intelligent dashboard.
+              Join the next generation of business leaders operating from one intelligent command center.
             </p>
             <Button
               size="lg"
@@ -264,7 +264,7 @@ export default function LandingPage() {
               className="relative mt-8 bg-black text-[#f6e27a] hover:bg-black/90 hover:shadow-lg hover:shadow-[#cb9b51]/30 h-12 px-8 text-base font-semibold transition-all"
             >
               <Link href="/pricing">
-                Start Your Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+                Get Started <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
