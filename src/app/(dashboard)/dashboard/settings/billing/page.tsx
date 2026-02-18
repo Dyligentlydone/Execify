@@ -52,7 +52,11 @@ export default async function BillingPage() {
                                         </Badge>
                                     )}
                                 </div>
-                                <CardDescription>
+                                <div className="mt-1 flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold">{plan.price}</span>
+                                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                                </div>
+                                <CardDescription className="mt-2">
                                     {key === "STARTER" ? "Essential tools for small teams" :
                                         key === "PRO" ? "Advanced features for growing businesses" :
                                             "Complete power for large organizations"}

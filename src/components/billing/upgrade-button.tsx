@@ -16,12 +16,14 @@ export function UpgradeButton({ priceId, current }: UpgradeButtonProps) {
 
     const handleUpgrade = async () => {
         setIsLoading(true);
+        console.log("Upgrade requested for price:", priceId);
         try {
             const url = await createStripeCheckoutSession(priceId);
+            console.log("Session created, redirecting to:", url);
             window.location.href = url;
         } catch (error) {
             console.error("Upgrade error:", error);
-            toast.error("Failed to start checkout session");
+            toast.error("Failed to start checkout session. Please try again.");
             setIsLoading(false);
         }
     };

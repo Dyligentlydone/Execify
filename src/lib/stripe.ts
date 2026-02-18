@@ -8,6 +8,8 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "dummy_key_for
 export const PLANS = {
     STARTER: {
         name: "Starter",
+        price: "$29",
+        period: "/month",
         priceId: process.env.STRIPE_STARTER_PRICE_ID!,
         limits: {
             teamMembers: 5,
@@ -24,6 +26,8 @@ export const PLANS = {
     },
     PRO: {
         name: "Pro",
+        price: "$79",
+        period: "/month",
         priceId: process.env.STRIPE_PRO_PRICE_ID!,
         limits: {
             teamMembers: 25,
@@ -41,6 +45,8 @@ export const PLANS = {
     },
     EXECUTIVE: {
         name: "Executive",
+        price: "$199",
+        period: "/month",
         priceId: process.env.STRIPE_EXECUTIVE_PRICE_ID!,
         limits: {
             teamMembers: Infinity,
