@@ -1,4 +1,4 @@
-import { Bot, Send, Lock } from "lucide-react";
+import { Bot, Send, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,41 +53,32 @@ export default async function AIPage() {
 
             {/* Chat Area */}
             <Card className="flex-1 border-border/50 flex flex-col overflow-hidden">
-                <CardContent className="flex-1 flex flex-col items-center justify-center p-6">
-                    <div className="rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 p-6 mb-4">
-                        <Bot className="h-12 w-12 text-indigo-500" />
+                <div className="flex-1 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 flex items-center justify-center relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+                    <div className="text-center space-y-6 max-w-lg z-10">
+                        <div className="relative mx-auto w-24 h-24">
+                            <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping duration-[3000ms]" />
+                            <div className="absolute inset-0 rounded-full bg-amber-500/10 animate-pulse duration-[2000ms]" />
+                            <div className="relative bg-gradient-to-br from-[#462523] to-[#cb9b51] rounded-full w-24 h-24 flex items-center justify-center shadow-xl border border-amber-500/30">
+                                <Sparkles className="h-10 w-10 text-white animate-pulse" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-semibold tracking-tight">How can I help you today?</h2>
+                            <p className="text-muted-foreground">
+                                Try asking about "Q3 Revenue" or "Top Performing Clients"
+                            </p>
+                        </div>
                     </div>
-                    <h3 className="text-lg font-semibold mb-1">
-                        Execify AI Assistant
-                    </h3>
-                    <p className="text-sm text-muted-foreground text-center max-w-md mb-2">
-                        Ask me anything about your business data. I can create tasks,
-                        generate invoices, update deals, and more.
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-4 max-w-lg justify-center">
-                        {[
-                            "Show me open deals",
-                            "Create a task for tomorrow",
-                            "How much revenue this month?",
-                            "Generate an invoice",
-                        ].map((suggestion) => (
-                            <Button
-                                key={suggestion}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs"
-                            >
-                                {suggestion}
-                            </Button>
-                        ))}
-                    </div>
-                </CardContent>
+                </div>
 
                 {/* Input */}
                 <div className="border-t border-border p-4">
                     <div className="flex gap-2">
                         <Input
-                            placeholder="Ask Execify AI anything..."
+                            placeholder="Ask Execuaide AI anything..."
                             className="flex-1 bg-muted/50 border-none"
                         />
                         <Button

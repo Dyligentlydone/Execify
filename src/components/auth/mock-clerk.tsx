@@ -19,7 +19,7 @@ const DEMO_USER = {
     fullName: "Demo User",
     firstName: "Demo",
     lastName: "User",
-    primaryEmailAddress: { emailAddress: "demo@execify.app" },
+    primaryEmailAddress: { emailAddress: "demo@execuaide.app" },
     imageUrl: "",
 };
 

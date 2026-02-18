@@ -21,7 +21,7 @@ export default function PricingPage() {
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg gold-icon text-sm font-bold text-black">
                             E
                         </div>
-                        <span className="text-lg font-bold tracking-tight">Execify</span>
+                        <span className="text-lg font-bold tracking-tight">Execuaide</span>
                     </Link>
                     <nav className="flex gap-4">
                         <Link href="/sign-in" className="text-sm font-medium hover:text-primary transition-colors">
@@ -124,10 +124,10 @@ export default function PricingPage() {
                             <div className="flex h-6 w-6 items-center justify-center rounded gold-icon text-xs font-bold text-black">
                                 E
                             </div>
-                            <span className="text-sm font-semibold">Execify</span>
+                            <span className="text-sm font-semibold">Execuaide</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            © {new Date().getFullYear()} Execify. All rights reserved.
+                            © {new Date().getFullYear()} Execuaide. All rights reserved.
                         </p>
                     </div>
                 </div>

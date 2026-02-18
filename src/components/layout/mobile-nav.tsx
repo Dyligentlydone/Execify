@@ -55,7 +55,7 @@ export function MobileNav() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white">
                         E
                     </div>
-                    <span className="text-lg font-bold tracking-tight">Execify</span>
+                    <span className="text-lg font-bold tracking-tight">Execuaide</span>
                 </div>
 
                 <Separator />

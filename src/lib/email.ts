@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 export const resend = new Resend(process.env.RESEND_API_KEY || "dummy_key_for_build");
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "hello@execify.com";
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "hello@execuaide.com";
 
 type SendEmailOptions = {
   to: string | string[];
@@ -14,7 +14,7 @@ type SendEmailOptions = {
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
   try {
     const { data, error } = await resend.emails.send({
-      from: `Execify <${FROM_EMAIL}>`,
+      from: `Execuaide <${FROM_EMAIL}>`,
       to: Array.isArray(to) ? to : [to],
       subject,
       html,
@@ -40,10 +40,10 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
 export async function sendWelcomeEmail(email: string, firstName: string) {
   return sendEmail({
     to: email,
-    subject: "Welcome to Execify 🚀",
+    subject: "Welcome to Execuaide 🚀",
     html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
-        <h1 style="color: #18181b;">Welcome to Execify, ${firstName}!</h1>
+        <h1 style="color: #18181b;">Welcome to Execuaide, ${firstName}!</h1>
         <p style="color: #52525b; line-height: 1.6;">
           Your AI-powered business command center is ready. Start by setting up your
           organization and inviting your team.
@@ -66,12 +66,12 @@ export async function sendOrgInviteEmail(
 ) {
   return sendEmail({
     to: email,
-    subject: `You've been invited to ${orgName} on Execify`,
+    subject: `You've been invited to ${orgName} on Execuaide`,
     html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">You're invited!</h1>
         <p style="color: #52525b; line-height: 1.6;">
-          ${inviterName} has invited you to join <strong>${orgName}</strong> on Execify.
+          ${inviterName} has invited you to join <strong>${orgName}</strong> on Execuaide.
         </p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL}/sign-up"
            style="display: inline-block; background: #18181b; color: #fafafa;
@@ -119,7 +119,7 @@ export async function sendSubscriptionUpdateEmail(
 ) {
   return sendEmail({
     to: email,
-    subject: `Your Execify plan has been updated`,
+    subject: `Your Execuaide plan has been updated`,
     html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #18181b;">Plan Updated</h1>

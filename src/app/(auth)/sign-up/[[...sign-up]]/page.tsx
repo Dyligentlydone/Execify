@@ -18,7 +18,7 @@ export default function SignUpPage() {
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl gold-icon text-lg font-bold text-black">
                             E
                         </div>
-                        <span className="text-2xl font-bold tracking-tight">Execify</span>
+                        <span className="text-2xl font-bold tracking-tight">Execuaide</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                         {plan ? `Create your account to start your ${plan} plan` : "Create your business command center"}
