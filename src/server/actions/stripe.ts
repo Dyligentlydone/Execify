@@ -20,7 +20,7 @@ export async function createStripeCheckoutSession(priceId: string) {
         throw new Error("Organization not found");
     }
 
-    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing`;
+    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
 
     try {
         // Create checkout session
