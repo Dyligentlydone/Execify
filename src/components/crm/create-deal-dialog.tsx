@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,28 @@ import { DealStage, Contact } from "@/generated/prisma/client";
 
 interface CreateDealDialogProps {
     stages: DealStage[];
-    contacts?: Contact[]; // Optional for now, can implement later
+    contacts: Contact[];
 }
 
-export function CreateDealDialog({ stages }: CreateDealDialogProps) {
+import { InlineContactForm } from "./inline-contact-form";
+
+export function CreateDealDialog({ stages, contacts }: CreateDealDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showContactForm, setShowContactForm] = useState(false);
+    const [localContacts, setLocalContacts] = useState<Contact[]>(contacts);
+    const [selectedContactId, setSelectedContactId] = useState<string>("");
+
+    // Sync local contacts if prop changes
+    useEffect(() => {
+        setLocalContacts(contacts);
+    }, [contacts]);
+
+    const handleContactCreated = (newContact: Contact) => {
+        setLocalContacts(prev => [newContact, ...prev]);
+        setSelectedContactId(newContact.id);
+        setShowContactForm(false);
+    };
 
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -56,7 +72,13 @@ export function CreateDealDialog({ stages }: CreateDealDialogProps) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => {
+            setOpen(v);
+            if (!v) {
+                setShowContactForm(false);
+                setSelectedContactId("");
+            }
+        }}>
             <DialogTrigger asChild>
                 <Button className="gold-action-button">
                     <Plus className="h-4 w-4 mr-2" />
@@ -101,6 +123,46 @@ export function CreateDealDialog({ stages }: CreateDealDialogProps) {
                                 </SelectContent>
                             </Select>
                         </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="contactId">Contact (Optional)</Label>
+                            <Button
+                                type="button"
+                                variant="link"
+                                className="h-auto p-0 text-xs text-primary"
+                                onClick={() => setShowContactForm(!showContactForm)}
+                            >
+                                {showContactForm ? "Cancel new contact" : "+ New contact"}
+                            </Button>
+                        </div>
+
+                        {!showContactForm ? (
+                            <Select
+                                name="contactId"
+                                value={selectedContactId}
+                                onValueChange={setSelectedContactId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select contact" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value=" ">None</SelectItem>
+                                    {localContacts.map((contact) => (
+                                        <SelectItem key={contact.id} value={contact.id}>
+                                            {contact.firstName} {contact.lastName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <InlineContactForm
+                                onSuccess={handleContactCreated}
+                                onCancel={() => setShowContactForm(false)}
+                            />
+                        )}
+                        {/* Hidden input to ensure contactId is submitted with the form if using Select controlled state */}
+                        <input type="hidden" name="contactId" value={selectedContactId} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="expectedCloseDate">Expected Close Date</Label>

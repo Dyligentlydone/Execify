@@ -26,24 +26,28 @@ export async function getContacts(
         sortOrder?: "asc" | "desc";
     } = {}
 ) {
-    const { contacts } = await withTenantScope();
+    const { organizationId } = await withTenantScope();
+    const { db } = await import("@/lib/db");
+
     const page = params.page || 1;
     const limit = params.limit || 10;
     const skip = (page - 1) * limit;
 
-    const where = params.search
-        ? {
-            OR: [
-                { firstName: { contains: params.search, mode: "insensitive" } as any },
-                { lastName: { contains: params.search, mode: "insensitive" } as any },
-                { company: { contains: params.search, mode: "insensitive" } as any },
-                { email: { contains: params.search, mode: "insensitive" } as any },
-            ],
-        }
-        : {};
+    const where: any = {
+        organizationId,
+    };
+
+    if (params.search) {
+        where.OR = [
+            { firstName: { contains: params.search, mode: "insensitive" } },
+            { lastName: { contains: params.search, mode: "insensitive" } },
+            { company: { contains: params.search, mode: "insensitive" } },
+            { email: { contains: params.search, mode: "insensitive" } },
+        ];
+    }
 
     const [data, total] = await Promise.all([
-        contacts.findMany({
+        db.contact.findMany({
             where,
             skip,
             take: limit,
@@ -51,7 +55,7 @@ export async function getContacts(
                 ? { [params.sortBy]: params.sortOrder || "asc" }
                 : { createdAt: "desc" },
         }),
-        contacts.count({ where }),
+        db.contact.count({ where }),
     ]);
 
     return {
