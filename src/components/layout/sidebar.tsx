@@ -90,11 +90,11 @@ export function Sidebar() {
         >
             {/* Logo / Brand */}
             <div className="flex h-16 items-center gap-2 px-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg gold-gradient-bg text-sm font-bold shrink-0">
                     E
                 </div>
                 {!collapsed && (
-                    <span className="text-lg font-bold tracking-tight text-foreground">
+                    <span className="text-lg font-bold tracking-tight gold-text">
                         Execufy
                     </span>
                 )}
@@ -110,9 +110,11 @@ export function Sidebar() {
                         elements: {
                             rootBox: "w-full",
                             organizationSwitcherTrigger: cn(
-                                "w-full justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm",
+                                "w-full justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm gold-text-simple",
                                 collapsed && "px-2 justify-center"
                             ),
+                            organizationPreviewAvatarBox: "bg-[#cb9b51] text-black",
+                            organizationPreviewAvatarImage: "hue-rotate(160deg) saturate(2) brightness(1.2)",
                         },
                     }}
                 />
@@ -132,11 +134,8 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                isActive
-                                    ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
-                                    : "text-sidebar-foreground/70",
+                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all sidebar-nav-item",
+                                isActive && "active",
                                 collapsed && "justify-center px-2"
                             )}
                         >
@@ -172,11 +171,8 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                isActive
-                                    ? "bg-sidebar-accent text-sidebar-primary"
-                                    : "text-sidebar-foreground/70",
+                                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all sidebar-nav-item",
+                                isActive && "active",
                                 collapsed && "justify-center px-2"
                             )}
                         >

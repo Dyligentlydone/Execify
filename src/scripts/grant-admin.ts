@@ -5,7 +5,7 @@ dotenv.config();
 import { db } from "../lib/db";
 
 async function main() {
-    const orgIds = ["cmlsw04m3003blf01pshipwek"];
+    const orgIds = ["cmlsx9hkg0009vnn9wkekrx73"];
 
     console.log(`Granting EXECUTIVE access to ${orgIds.length} organizations...`);
 

@@ -76,7 +76,7 @@ export function DateRangePicker({ value, onChange }: Props) {
         <div className="flex items-center gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2 min-w-[180px] justify-between">
+                    <Button variant="outline" className="gold-action-button gap-2 min-w-[180px] justify-between">
                         <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm font-medium">{value.label}</span>

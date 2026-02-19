@@ -138,22 +138,22 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     </CardHeader>
                     <CardContent className="grid gap-2">
                         <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/contacts">
+                            <a href="/dashboard/contacts">
                                 <Users className="mr-2 h-4 w-4" /> Add Contact
                             </a>
                         </Button>
                         <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/deals">
+                            <a href="/dashboard/deals">
                                 <Briefcase className="mr-2 h-4 w-4" /> Create Deal
                             </a>
                         </Button>
                         <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/tasks">
+                            <a href="/dashboard/tasks">
                                 <ListTodo className="mr-2 h-4 w-4" /> Add Task
                             </a>
                         </Button>
                         <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/invoices">
+                            <a href="/dashboard/invoices">
                                 <DollarSign className="mr-2 h-4 w-4" /> Create Invoice
                             </a>
                         </Button>

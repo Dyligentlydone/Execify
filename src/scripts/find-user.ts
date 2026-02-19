@@ -5,7 +5,7 @@ dotenv.config();
 import { db } from "../lib/db";
 
 async function main() {
-    const searchTerm = "dylan@dyligent.solutions";
+    const searchTerm = process.argv[2] || "dylan@dyligent.solutions";
     console.log(`Searching for users with email containing: ${searchTerm}`);
 
     try {

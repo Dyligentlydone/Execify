@@ -152,7 +152,7 @@ export function CreateExpenseDialog() {
     return (
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { form.reset(); setReceiptUrl(null); setReceiptName(null); } }}>
             <DialogTrigger asChild>
-                <Button className="gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all">
+                <Button className="gold-action-button gap-2">
                     <Plus className="h-4 w-4" />
                     Add Expense
                 </Button>
@@ -314,7 +314,7 @@ export function CreateExpenseDialog() {
                                             variant={field.value === "ONE_TIME" ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => field.onChange("ONE_TIME")}
-                                            className="flex-1"
+                                            className={`flex-1 ${field.value === "ONE_TIME" ? "gold-surface border-0 text-black hover:opacity-90" : ""}`}
                                         >
                                             One-time
                                         </Button>
@@ -323,7 +323,7 @@ export function CreateExpenseDialog() {
                                             variant={field.value === "RECURRING" ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => field.onChange("RECURRING")}
-                                            className="flex-1 gap-1"
+                                            className={`flex-1 gap-1 ${field.value === "RECURRING" ? "gold-surface border-0 text-black hover:opacity-90" : ""}`}
                                         >
                                             <Repeat className="h-3 w-3" /> Recurring
                                         </Button>
@@ -432,7 +432,11 @@ export function CreateExpenseDialog() {
                             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={loading}>
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
+                            >
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Create Expense
                             </Button>

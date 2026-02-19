@@ -55,8 +55,8 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.72 0.12 80);
+  --primary-foreground: oklch(0.08 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
@@ -91,8 +91,8 @@
   --card: oklch(0.12 0.03 75 / 40%);
   --card-foreground: oklch(0.98 0 0);
 
-  /* Popovers with enhanced glass effect */
-  --popover: oklch(0.10 0.03 75 / 60%);
+  /* Popovers with enhanced glass effect - INCREASED OPACITY FOR READABILITY */
+  --popover: oklch(0.10 0.03 75 / 95%);
   --popover-foreground: oklch(0.98 0 0);
 
   /* Real gold primary - based on #cb9b51 */
@@ -159,10 +159,9 @@
     }
 
     /* Enhanced popover/dialog glass effect */
-    [role="dialog"],
     [data-radix-popper-content-wrapper] {
       backdrop-filter: blur(16px);
-      border: 1px solid oklch(0.72 0.12 80 / 35%);
+      border: 1px solid oklch(0.72 0.12 80 / 50%);
       box-shadow:
         0 0 35px oklch(0.72 0.12 80 / 15%),
         inset 0 1px 0 oklch(0.72 0.12 80 / 20%);
@@ -385,4 +384,57 @@ button.gold-action-button:hover svg,
   color: #cb9b51 !important;
   /* Solid gold for icons on hover */
   stroke: #cb9b51 !important;
+}
+
+/* Sidebar Navigation Item */
+.sidebar-nav-item {
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.sidebar-nav-item:hover {
+  background-color: transparent;
+
+  /* Gold Gradient Text */
+  background-image: linear-gradient(to right,
+      #8b6914 0%,
+      #cb9b51 20%,
+      #f6e27a 50%,
+      #cb9b51 80%,
+      #8b6914 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  filter: drop-shadow(0 0 8px rgba(203, 155, 81, 0.5));
+}
+
+.sidebar-nav-item:hover svg {
+  stroke: #cb9b51;
+  filter: drop-shadow(0 0 5px rgba(203, 155, 81, 0.6));
+}
+
+/* Active Sidebar Item - Gold Text but solid for readability */
+.sidebar-nav-item.active {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #f6e27a;
+  box-shadow: inset 2px 0 0 #cb9b51;
+}
+
+.sidebar-nav-item.active svg {
+  stroke: #f6e27a;
+}
+
+/* Gold Gradient Background (for Logo) */
+.gold-gradient-bg {
+  background: linear-gradient(135deg,
+      #8b6914 0%,
+      #cb9b51 30%,
+      #f6e27a 50%,
+      #cb9b51 70%,
+      #8b6914 100%);
+  box-shadow: 0 0 15px rgba(203, 155, 81, 0.3);
+  color: #1a1a1a !important;
+  /* Dark text on gold bg */
 }

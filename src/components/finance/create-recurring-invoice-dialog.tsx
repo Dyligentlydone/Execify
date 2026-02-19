@@ -128,8 +128,8 @@ export function CreateRecurringInvoiceDialog({ contacts }: { contacts: Contact[]
             }
         }}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50">
-                    <Repeat className="h-4 w-4 mr-2 text-indigo-600" />
+                <Button className="gold-action-button">
+                    <Repeat className="h-4 w-4 mr-2" />
                     Setup Recurring
                 </Button>
             </DialogTrigger>
@@ -342,7 +342,11 @@ export function CreateRecurringInvoiceDialog({ contacts }: { contacts: Contact[]
                             <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={loading || showContactForm} className="min-w-[180px]">
+                            <Button
+                                type="submit"
+                                disabled={loading || showContactForm}
+                                className="min-w-[180px] gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
+                            >
                                 {loading ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : (

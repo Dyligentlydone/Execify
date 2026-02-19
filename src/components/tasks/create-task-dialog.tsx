@@ -53,7 +53,7 @@ export function CreateTaskDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0">
+                <Button className="gold-action-button">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
                 </Button>
@@ -103,7 +103,14 @@ export function CreateTaskDialog() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
+                        >
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Create Task
                         </Button>

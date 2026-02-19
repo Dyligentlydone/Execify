@@ -114,7 +114,7 @@ export function CreateInvoiceDialog({ contacts }: { contacts: Contact[] }) {
             }
         }}>
             <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md">
+                <Button className="gold-action-button">
                     <Plus className="h-4 w-4 mr-2" />
                     New Invoice
                 </Button>
@@ -278,12 +278,12 @@ export function CreateInvoiceDialog({ contacts }: { contacts: Contact[] }) {
                             <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={loading || showContactForm} className="min-w-[140px]">
-                                {loading ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Plus className="mr-2 h-4 w-4" />
-                                )}
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
+                            >
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Create Invoice
                             </Button>
                         </DialogFooter>
