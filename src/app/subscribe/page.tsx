@@ -33,7 +33,7 @@ export default async function SubscribePage() {
                         Complete Your Setup
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        To access your Execuaide dashboard, please select a subscription plan.
+                        To access your Execufy dashboard, please select a subscription plan.
                     </p>
                 </div>
 

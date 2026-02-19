@@ -78,7 +78,7 @@ export default async function AIPage() {
                 <div className="border-t border-border p-4">
                     <div className="flex gap-2">
                         <Input
-                            placeholder="Ask Execuaide AI anything..."
+                            placeholder="Ask Execufy AI anything..."
                             className="flex-1 bg-muted/50 border-none"
                         />
                         <Button

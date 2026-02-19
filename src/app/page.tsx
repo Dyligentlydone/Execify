@@ -75,7 +75,7 @@ export default function LandingPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gold-icon text-sm font-bold text-black">
               E
             </div>
-            <span className="text-lg font-bold tracking-tight">Execuaide</span>
+            <span className="text-lg font-bold tracking-tight">Execufy</span>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
@@ -113,7 +113,7 @@ export default function LandingPage() {
             A future proof command center that brings your customer relations, finances, operations and more into one powerful dashboard.
             <br />
             <br />
-            <span className="italic">-Execuaide, your intelligent executive aide, always on.</span>
+            <span className="italic">-Execufy, your intelligent executive aide, always on.</span>
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button
@@ -279,10 +279,10 @@ export default function LandingPage() {
               <div className="flex h-6 w-6 items-center justify-center rounded gold-icon text-xs font-bold text-black">
                 E
               </div>
-              <span className="text-sm font-semibold">Execuaide</span>
+              <span className="text-sm font-semibold">Execufy</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Execuaide. All rights reserved.
+              © {new Date().getFullYear()} Execufy. All rights reserved.
             </p>
           </div>
         </div>

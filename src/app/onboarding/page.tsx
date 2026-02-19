@@ -6,7 +6,7 @@ export default function OnboardingPage() {
             <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8">
                 <div className="text-center space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                        Welcome to Execuaide
+                        Welcome to Execufy
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                         To get started, we need to set up your business workspace.

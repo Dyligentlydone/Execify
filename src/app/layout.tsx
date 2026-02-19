@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Execuaide — AI-Powered Business Command Center",
+  title: "Execufy — AI-Powered Business Command Center",
   description:
     "The modular, AI-first business operating system for business owners and executives. Manage CRM, finances, tasks, revenue, and operations from one central command interface.",
   keywords: ["business dashboard", "AI assistant", "CRM", "SaaS", "command center"],
