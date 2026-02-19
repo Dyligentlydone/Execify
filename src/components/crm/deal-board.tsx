@@ -43,7 +43,10 @@ import {
 import { Handshake, Trash, Loader2, Save } from "lucide-react";
 import { ActivityTimeline } from "@/components/shared/activity-timeline";
 
-type DealWithContact = Deal & { contact?: Contact | null };
+type DealWithContact = Omit<Deal, "value"> & {
+    value: number | null;
+    contact?: Contact | null;
+};
 
 interface DealBoardProps {
     initialStages: DealStage[];
@@ -311,7 +314,7 @@ function EditDealForm({
     deal: DealWithContact;
     contacts: Contact[];
     stages: DealStage[];
-    onUpdate: (data: Partial<Deal>) => void;
+    onUpdate: (data: Partial<DealWithContact> & { stageId?: string }) => void;
     onDelete: (id: string) => void;
 }) {
     const [loading, setLoading] = useState(false);
@@ -342,7 +345,7 @@ function EditDealForm({
                 // Since DealBoard filters deals by stageId for columns, this should just work!
             }
 
-            onUpdate(updates);
+            onUpdate(updates as Partial<DealWithContact>);
         }
         setLoading(false);
     }
