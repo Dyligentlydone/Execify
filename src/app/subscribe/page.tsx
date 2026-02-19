@@ -5,6 +5,7 @@ import { UpgradeButton } from "@/components/billing/upgrade-button";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 
 export default async function SubscribePage() {
     const user = await getCurrentUser();
@@ -26,8 +27,24 @@ export default async function SubscribePage() {
     }
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-            <div className="max-w-5xl w-full space-y-8">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative">
+            {/* Escape Hatch Header */}
+            <div className="absolute top-4 right-4 flex items-center gap-4">
+                <OrganizationSwitcher
+                    hidePersonal
+                    afterCreateOrganizationUrl="/onboarding"
+                    afterLeaveOrganizationUrl="/dashboard"
+                    afterSelectOrganizationUrl="/dashboard"
+                    appearance={{
+                        elements: {
+                            rootBox: "flex justify-center items-center",
+                        }
+                    }}
+                />
+                <UserButton afterSignOutUrl="/sign-in" />
+            </div>
+
+            <div className="max-w-5xl w-full space-y-8 mt-12">
                 <div className="text-center space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
                         Complete Your Setup

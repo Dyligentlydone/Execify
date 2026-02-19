@@ -11,6 +11,7 @@
     "db:push": "prisma db push"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.29",
     "@clerk/nextjs": "^6.37.4",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -18,6 +19,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.19.2",
     "@tanstack/react-table": "^8.21.3",
+    "ai": "^6.0.91",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
