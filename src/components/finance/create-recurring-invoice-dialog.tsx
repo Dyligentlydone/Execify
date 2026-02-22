@@ -56,7 +56,7 @@ const createRecurringSchema = z.object({
 
 type RecurringFormValues = z.infer<typeof createRecurringSchema>;
 
-export function CreateRecurringInvoiceDialog({ contacts }: { contacts: Contact[] }) {
+export function CreateRecurringInvoiceDialog({ contacts, isReadOnly }: { contacts: Contact[], isReadOnly?: boolean }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showContactForm, setShowContactForm] = useState(false);
@@ -128,7 +128,7 @@ export function CreateRecurringInvoiceDialog({ contacts }: { contacts: Contact[]
             }
         }}>
             <DialogTrigger asChild>
-                <Button className="gold-action-button">
+                <Button className="gold-action-button" disabled={isReadOnly}>
                     <Repeat className="h-4 w-4 mr-2" />
                     Setup Recurring
                 </Button>

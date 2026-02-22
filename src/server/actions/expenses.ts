@@ -55,6 +55,8 @@ export async function createExpense(formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
     const user = await getCurrentUser();
     if (!user) return { error: "Unauthorized" };
 
@@ -90,6 +92,8 @@ export async function createExpense(formData: FormData) {
 
 export async function deleteExpense(id: string) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.expense.findUnique({ where: { id } });
@@ -115,6 +119,8 @@ export async function updateExpense(id: string, formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.expense.findUnique({ where: { id } });

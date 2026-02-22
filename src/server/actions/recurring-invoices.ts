@@ -61,6 +61,8 @@ export async function createRecurringInvoice(formData: FormData) {
 
     const { name, contactId, frequency, interval, startDate, items: validItems, notes } = parseResult.data;
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };
@@ -108,6 +110,8 @@ export async function createRecurringInvoice(formData: FormData) {
 
 export async function pauseRecurringInvoice(id: string, pause: boolean) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.recurringInvoice.findUnique({ where: { id } });
@@ -132,6 +136,8 @@ export async function pauseRecurringInvoice(id: string, pause: boolean) {
 
 export async function cancelRecurringInvoice(id: string) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.recurringInvoice.findUnique({ where: { id } });
@@ -154,6 +160,8 @@ export async function cancelRecurringInvoice(id: string) {
 
 export async function deleteRecurringInvoice(id: string) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.recurringInvoice.findUnique({ where: { id } });

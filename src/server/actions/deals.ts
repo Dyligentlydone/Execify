@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantScope } from "@/lib/tenant";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, requireActiveSubscription } from "@/lib/auth";
 
 const createDealSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -49,6 +49,7 @@ export async function createDeal(formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    await requireActiveSubscription();
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };
@@ -93,6 +94,7 @@ export async function updateDeal(dealId: string, formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    await requireActiveSubscription();
 
     try {
         const existing = await db.deal.findUnique({
@@ -118,6 +120,7 @@ export async function updateDeal(dealId: string, formData: FormData) {
 
 export async function updateDealStage(dealId: string, stageId: string) {
     const { organizationId } = await withTenantScope();
+    await requireActiveSubscription();
 
     try {
         const existing = await db.deal.findUnique({
@@ -152,6 +155,7 @@ export async function updateDealStage(dealId: string, stageId: string) {
 
 export async function deleteDeal(id: string) {
     const { organizationId } = await withTenantScope();
+    await requireActiveSubscription();
 
     try {
         const existing = await db.deal.findUnique({ where: { id } });

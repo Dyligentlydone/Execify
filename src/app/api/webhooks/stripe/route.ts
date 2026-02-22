@@ -117,7 +117,7 @@ export async function POST(req: Request) {
                 await db.organization.update({
                     where: { stripeSubscriptionId: subscription.id },
                     data: {
-                        plan: "STARTER",
+                        plan: "FREE",
                         stripeSubscriptionId: null,
                     },
                 });

@@ -171,3 +171,24 @@ export async function getTenantId(): Promise<string> {
 
     return user.organizationId;
 }
+
+/**
+ * Require an active (paid) subscription.
+ * Throws if the organization is on the FREE plan.
+ */
+export async function requireActiveSubscription(): Promise<void> {
+    const user = await getCurrentUser();
+
+    if (!user?.organizationId) {
+        throw new Error("Unauthorized: No organization selected");
+    }
+
+    const org = await db.organization.findUnique({
+        where: { id: user.organizationId },
+        select: { plan: true },
+    });
+
+    if (org?.plan === "FREE") {
+        throw new Error("Payment Required: Subscription is in read-only mode.");
+    }
+}

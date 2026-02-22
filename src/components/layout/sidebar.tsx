@@ -77,7 +77,7 @@ const BOTTOM_NAV = [
     },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isReadOnly }: { isReadOnly?: boolean }) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
 
@@ -129,6 +129,8 @@ export function Sidebar() {
                         pathname === item.href ||
                         (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
+                    const isDisabled = isReadOnly && item.href !== "/dashboard";
+
                     const linkContent = (
                         <Link
                             key={item.href}
@@ -136,8 +138,11 @@ export function Sidebar() {
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all sidebar-nav-item",
                                 isActive && "active",
+                                isDisabled && "pointer-events-none opacity-50",
                                 collapsed && "justify-center px-2"
                             )}
+                            tabIndex={isDisabled ? -1 : undefined}
+                            aria-disabled={isDisabled}
                         >
                             <item.icon className="h-5 w-5 shrink-0" />
                             {!collapsed && <span>{item.label}</span>}

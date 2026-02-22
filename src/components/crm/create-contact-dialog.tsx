@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { createContact } from "@/server/actions/contacts";
 
-export function CreateContactDialog() {
+export function CreateContactDialog({ isReadOnly }: { isReadOnly?: boolean }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -53,7 +53,7 @@ export function CreateContactDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="gold-action-button">
+                <Button className="gold-action-button" disabled={isReadOnly}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                 </Button>

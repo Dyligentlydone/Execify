@@ -80,7 +80,9 @@ export async function createContact(formData: FormData) {
     const { contacts, organizationId } = await withTenantScope();
     // We need current user ID for `createdById`. `withTenantScope` provides orgId.
     // We'll import `getCurrentUser` here.
-    const { getCurrentUser } = await import("@/lib/auth");
+    const { getCurrentUser, requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
+
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };
@@ -143,6 +145,8 @@ export async function updateContact(id: string, formData: FormData) {
 
     const { organizationId } = await withTenantScope();
     const { db } = await import("@/lib/db");
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         // Verify ownership/tenant
@@ -170,6 +174,8 @@ export async function updateContact(id: string, formData: FormData) {
 export async function deleteContact(id: string) {
     const { organizationId } = await withTenantScope();
     const { db } = await import("@/lib/db");
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         // Verify ownership/tenant

@@ -37,7 +37,7 @@ const NAV_ITEMS = [
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function MobileNav() {
+export function MobileNav({ isReadOnly }: { isReadOnly?: boolean }) {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
 
@@ -81,18 +81,29 @@ export function MobileNav() {
                             pathname === item.href ||
                             (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
+                        const isDisabled = isReadOnly && item.href !== "/dashboard" && item.href !== "/dashboard/settings";
+
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                onClick={() => setOpen(false)}
+                                onClick={(e) => {
+                                    if (isDisabled) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                    setOpen(false);
+                                }}
                                 className={cn(
                                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                                     "hover:bg-accent hover:text-accent-foreground",
                                     isActive
                                         ? "bg-accent text-accent-foreground shadow-sm"
-                                        : "text-muted-foreground"
+                                        : "text-muted-foreground",
+                                    isDisabled && "pointer-events-none opacity-50"
                                 )}
+                                tabIndex={isDisabled ? -1 : undefined}
+                                aria-disabled={isDisabled}
                             >
                                 <item.icon className="h-5 w-5" />
                                 <span>{item.label}</span>

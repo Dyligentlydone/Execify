@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +12,26 @@ import { CreateRecurringInvoiceDialog } from "@/components/finance/create-recurr
 import { RecurringInvoiceList } from "@/components/finance/recurring-invoice-list";
 import { Loader2, Receipt, Repeat } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export default async function InvoicesPage() {
     // Process any due recurring invoices on load (Simulated Cron)
     await processRecurringBilling();
+
+    const user = await getCurrentUser();
+    let isReadOnly = false;
+    if (user?.organizationId) {
+        const org = await db.organization.findUnique({
+            where: { id: user.organizationId },
+            select: { plan: true },
+        });
+        isReadOnly = org?.plan === "FREE";
+    }
+
+    if (isReadOnly) {
+        redirect("/dashboard");
+    }
 
     const [invoicesRaw, contacts, recurringRaw] = await Promise.all([
         getInvoices(),
@@ -38,8 +55,8 @@ export default async function InvoicesPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <CreateRecurringInvoiceDialog contacts={contacts.data} />
-                    <CreateInvoiceDialog contacts={contacts.data} />
+                    <CreateRecurringInvoiceDialog contacts={contacts.data} isReadOnly={isReadOnly} />
+                    <CreateInvoiceDialog contacts={contacts.data} isReadOnly={isReadOnly} />
                 </div>
             </div>
 

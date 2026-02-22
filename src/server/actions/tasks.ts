@@ -39,6 +39,8 @@ export async function createTask(formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };
@@ -62,6 +64,8 @@ export async function createTask(formData: FormData) {
 
 export async function updateTaskStatus(taskId: string, status: "TODO" | "DONE") {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.task.findUnique({ where: { id: taskId } });
@@ -88,6 +92,8 @@ export async function updateTaskStatus(taskId: string, status: "TODO" | "DONE") 
 
 export async function deleteTask(id: string) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.task.findUnique({ where: { id } });

@@ -21,6 +21,8 @@ export async function createNote(formData: FormData) {
     }
 
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };

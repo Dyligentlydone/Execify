@@ -28,11 +28,12 @@ import { DealStage, Contact } from "@/generated/prisma/client";
 interface CreateDealDialogProps {
     stages: DealStage[];
     contacts: Contact[];
+    isReadOnly?: boolean;
 }
 
 import { InlineContactForm } from "./inline-contact-form";
 
-export function CreateDealDialog({ stages, contacts }: CreateDealDialogProps) {
+export function CreateDealDialog({ stages, contacts, isReadOnly }: CreateDealDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showContactForm, setShowContactForm] = useState(false);
@@ -80,7 +81,7 @@ export function CreateDealDialog({ stages, contacts }: CreateDealDialogProps) {
             }
         }}>
             <DialogTrigger asChild>
-                <Button className="gold-action-button">
+                <Button className="gold-action-button" disabled={isReadOnly}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Deal
                 </Button>

@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PLANS } from "@/lib/stripe";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function AIPage() {
     const user = await getCurrentUser();
@@ -18,6 +19,10 @@ export default async function AIPage() {
         where: { id: user.organizationId },
         select: { plan: true },
     });
+
+    if (org?.plan === "FREE") {
+        redirect("/dashboard");
+    }
 
     const currentPlan = org?.plan ? PLANS[org.plan as keyof typeof PLANS] : PLANS.STARTER;
     const hasAccess = currentPlan.limits.aiAccess;

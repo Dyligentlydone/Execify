@@ -19,25 +19,28 @@ export default async function DashboardLayout({
         redirect("/onboarding");
     }
 
-    const org = await db.organization.findUnique({
-        where: { id: user.organizationId },
-        select: { stripeSubscriptionId: true }
-    });
+    // Allow FREE users into the dashboard (read-only mode)
+    // We removed the strict !stripeSubscriptionId lockout here.
 
-    if (!org?.stripeSubscriptionId) {
-        redirect("/subscribe");
+    let isReadOnly = false;
+    if (user.organizationId) {
+        const org = await db.organization.findUnique({
+            where: { id: user.organizationId },
+            select: { plan: true },
+        });
+        isReadOnly = org?.plan === "FREE";
     }
 
     return (
         <div className="flex h-screen overflow-hidden bg-background">
             {/* Desktop sidebar */}
             <div className="hidden md:flex">
-                <Sidebar />
+                <Sidebar isReadOnly={isReadOnly} />
             </div>
 
             {/* Main content area */}
             <div className="flex flex-1 flex-col overflow-hidden">
-                <Topbar />
+                <Topbar isReadOnly={isReadOnly} />
                 <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                     {children}
                 </main>

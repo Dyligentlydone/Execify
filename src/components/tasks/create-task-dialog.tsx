@@ -25,7 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createTask } from "@/server/actions/tasks";
 
-export function CreateTaskDialog() {
+export function CreateTaskDialog({ isReadOnly }: { isReadOnly?: boolean }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -53,7 +53,7 @@ export function CreateTaskDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="gold-action-button">
+                <Button className="gold-action-button" disabled={isReadOnly}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
                 </Button>

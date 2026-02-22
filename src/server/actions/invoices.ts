@@ -57,6 +57,8 @@ export async function createInvoice(formData: FormData) {
 
     const { contactId, dueDate, items: validItems } = parseResult.data;
     const { organizationId, invoices } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
     const user = await getCurrentUser();
 
     if (!user) return { error: "Unauthorized" };
@@ -103,6 +105,8 @@ export async function createInvoice(formData: FormData) {
 
 export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.invoice.findUnique({ where: { id } });
@@ -140,6 +144,8 @@ const updateInvoiceSchema = z.object({
 
 export async function updateInvoice(id: string, formData: FormData) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     const existing = await db.invoice.findUnique({ where: { id }, include: { items: true } });
     if (!existing || existing.organizationId !== organizationId) {
@@ -199,6 +205,8 @@ export async function updateInvoice(id: string, formData: FormData) {
 
 export async function deleteInvoice(id: string) {
     const { organizationId } = await withTenantScope();
+    const { requireActiveSubscription } = await import("@/lib/auth");
+    await requireActiveSubscription();
 
     try {
         const existing = await db.invoice.findUnique({ where: { id } });

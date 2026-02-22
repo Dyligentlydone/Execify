@@ -50,7 +50,7 @@ const createInvoiceSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof createInvoiceSchema>;
 
-export function CreateInvoiceDialog({ contacts }: { contacts: Contact[] }) {
+export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contact[], isReadOnly?: boolean }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showContactForm, setShowContactForm] = useState(false);
@@ -114,7 +114,7 @@ export function CreateInvoiceDialog({ contacts }: { contacts: Contact[] }) {
             }
         }}>
             <DialogTrigger asChild>
-                <Button className="gold-action-button">
+                <Button className="gold-action-button" disabled={isReadOnly}>
                     <Plus className="h-4 w-4 mr-2" />
                     New Invoice
                 </Button>

@@ -6,6 +6,22 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "dummy_key_for
 });
 
 export const PLANS = {
+    FREE: {
+        name: "Read-Only Free Tier",
+        price: "$0",
+        period: "/month",
+        priceId: "free",
+        limits: {
+            teamMembers: 1,
+            contacts: 0,
+            aiAccess: false,
+        },
+        features: [
+            "View historical data",
+            "Read-only dashboard",
+            "Settings access",
+        ],
+    },
     STARTER: {
         name: "Starter",
         price: "$29",

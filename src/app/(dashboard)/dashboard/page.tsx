@@ -43,6 +43,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
     const stats = await getDashboardStats();
 
+    let isReadOnly = false;
+    if (user?.organizationId) {
+        const org = await db.organization.findUnique({
+            where: { id: user.organizationId },
+            select: { plan: true },
+        });
+        if (org?.plan === "FREE") {
+            isReadOnly = true;
+        }
+    }
+
     const STATS = [
         {
             title: "Total Revenue",
@@ -137,25 +148,41 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-2">
-                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/dashboard/contacts">
-                                <Users className="mr-2 h-4 w-4" /> Add Contact
-                            </a>
+                        <Button className="w-full justify-start h-10 gold-action-button" disabled={isReadOnly} asChild={!isReadOnly}>
+                            {isReadOnly ? (
+                                <span className="flex items-center"><Users className="mr-2 h-4 w-4" /> Add Contact</span>
+                            ) : (
+                                <a href="/dashboard/contacts">
+                                    <Users className="mr-2 h-4 w-4" /> Add Contact
+                                </a>
+                            )}
                         </Button>
-                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/dashboard/deals">
-                                <Briefcase className="mr-2 h-4 w-4" /> Create Deal
-                            </a>
+                        <Button className="w-full justify-start h-10 gold-action-button" disabled={isReadOnly} asChild={!isReadOnly}>
+                            {isReadOnly ? (
+                                <span className="flex items-center"><Briefcase className="mr-2 h-4 w-4" /> Create Deal</span>
+                            ) : (
+                                <a href="/dashboard/deals">
+                                    <Briefcase className="mr-2 h-4 w-4" /> Create Deal
+                                </a>
+                            )}
                         </Button>
-                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/dashboard/tasks">
-                                <ListTodo className="mr-2 h-4 w-4" /> Add Task
-                            </a>
+                        <Button className="w-full justify-start h-10 gold-action-button" disabled={isReadOnly} asChild={!isReadOnly}>
+                            {isReadOnly ? (
+                                <span className="flex items-center"><ListTodo className="mr-2 h-4 w-4" /> Add Task</span>
+                            ) : (
+                                <a href="/dashboard/tasks">
+                                    <ListTodo className="mr-2 h-4 w-4" /> Add Task
+                                </a>
+                            )}
                         </Button>
-                        <Button className="w-full justify-start h-10 gold-action-button" asChild>
-                            <a href="/dashboard/invoices">
-                                <DollarSign className="mr-2 h-4 w-4" /> Create Invoice
-                            </a>
+                        <Button className="w-full justify-start h-10 gold-action-button" disabled={isReadOnly} asChild={!isReadOnly}>
+                            {isReadOnly ? (
+                                <span className="flex items-center"><DollarSign className="mr-2 h-4 w-4" /> Create Invoice</span>
+                            ) : (
+                                <a href="/dashboard/invoices">
+                                    <DollarSign className="mr-2 h-4 w-4" /> Create Invoice
+                                </a>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>
