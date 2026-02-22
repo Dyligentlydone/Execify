@@ -56,7 +56,7 @@ export async function POST(req: Request) {
                     where: { stripeSubscriptionId: subscription.id },
                     include: {
                         members: {
-                            where: { role: "OWNER" },
+                            where: { role: { in: ["OWNER", "ADMIN"] } },
                             include: { user: true },
                         },
                     },
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
                     where: { stripeCustomerId: customerId },
                     include: {
                         members: {
-                            where: { role: "OWNER" },
+                            where: { role: { in: ["OWNER", "ADMIN"] } },
                             include: { user: true },
                         },
                     },

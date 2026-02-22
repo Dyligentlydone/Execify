@@ -107,8 +107,13 @@ export async function POST(req: Request) {
             case "organization.created": {
                 const { id, name, slug } = evt.data;
 
-                const org = await db.organization.create({
-                    data: {
+                const org = await db.organization.upsert({
+                    where: { clerkOrgId: id },
+                    update: {
+                        name,
+                        slug: slug || id,
+                    },
+                    create: {
                         clerkOrgId: id,
                         name,
                         slug: slug || id,
@@ -237,7 +242,7 @@ export async function POST(req: Request) {
 function mapClerkRole(clerkRole: string): "OWNER" | "ADMIN" | "MANAGER" | "VIEWER" {
     switch (clerkRole) {
         case "org:admin":
-            return "ADMIN";
+            return "OWNER";
         case "org:member":
             return "MANAGER";
         default:
