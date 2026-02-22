@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PLANS } from "@/lib/stripe";
+import { AnimatedWord } from "@/components/ui/animated-word";
 
 const FEATURES = [
   {
@@ -113,7 +114,11 @@ export default function LandingPage() {
             A future proof command center that brings your customer relations, finances, operations and more into one powerful dashboard.
             <br />
             <br />
-            <span className="italic">-Execufy, your intelligent executive aide, always on.</span>
+            <span className="italic flex flex-wrap items-center justify-center gap-x-1">
+              -Execufy, your intelligent executive partner. Always{" "}
+              <AnimatedWord />
+              .
+            </span>
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button
@@ -250,21 +255,20 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl gold-surface-cta px-6 py-16 text-center sm:px-12 sm:py-24">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDU2IDAgTCAyOCA1MCBMIDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNncmlkKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-30" />
-            <h2 className="relative text-3xl font-bold text-black sm:text-4xl">
+          <div className="relative px-6 py-16 text-center sm:px-12 sm:py-24">
+            <h2 className="relative text-3xl font-bold gold-text sm:text-4xl">
               Ready to take command?
             </h2>
-            <p className="relative mt-4 text-lg text-black/70 max-w-xl mx-auto">
+            <p className="relative mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
               Join the next generation of business leaders operating from one intelligent command center.
             </p>
             <Button
               size="lg"
               asChild
-              className="relative mt-8 bg-black text-[#f6e27a] hover:bg-black/90 hover:shadow-lg hover:shadow-[#cb9b51]/30 h-12 px-8 text-base font-semibold transition-all"
+              className="relative mt-8 gold-surface text-black border-0 shadow-[0_0_20px_rgba(203,155,81,0.3)] hover:shadow-[0_0_35px_rgba(203,155,81,0.6)] transition-all duration-300 h-12 px-8 text-base font-semibold"
             >
               <Link href="/pricing">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                Execufy <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
