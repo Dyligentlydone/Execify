@@ -15,6 +15,7 @@ import {
     Settings,
     Menu,
     X,
+    Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
     { label: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { label: "Invoices", href: "/dashboard/invoices", icon: FileText },
     { label: "Financials", href: "/dashboard/financials", icon: DollarSign },
+    { label: "Taxes", href: "/dashboard/taxes", icon: Calculator },
     { label: "AI Assistant", href: "/dashboard/ai", icon: Bot },
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

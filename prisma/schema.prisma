@@ -518,6 +518,7 @@ model Expense {
   date        DateTime
   type        ExpenseType @default(ONE_TIME)
   category    String      // preset or custom category
+  taxCategory String?     // IRS Schedule C mapped category
   vendor      String?
   notes       String?
   receiptUrl  String?

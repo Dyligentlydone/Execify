@@ -16,6 +16,7 @@ import {
     ChevronLeft,
     ChevronRight,
     CreditCard,
+    Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,11 @@ const NAV_ITEMS = [
         label: "Financials",
         href: "/dashboard/financials",
         icon: DollarSign,
+    },
+    {
+        label: "Taxes",
+        href: "/dashboard/taxes",
+        icon: Calculator,
     },
     {
         label: "AI Assistant",
