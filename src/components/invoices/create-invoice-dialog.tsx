@@ -44,6 +44,7 @@ const invoiceItemSchema = z.object({
 
 const createInvoiceSchema = z.object({
     contactId: z.string().min(1, "Customer is required"),
+    issueDate: z.string().min(1, "Issue date is required"),
     dueDate: z.string().min(1, "Due date is required"),
     items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
 });
@@ -65,6 +66,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
         resolver: zodResolver(createInvoiceSchema) as any,
         defaultValues: {
             contactId: "",
+            issueDate: new Date().toISOString().split("T")[0],
             dueDate: new Date().toISOString().split("T")[0],
             items: [{ description: "", quantity: 1, unitPrice: 0 }],
         },
@@ -83,6 +85,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
 
         const formData = new FormData();
         formData.append("contactId", data.contactId);
+        formData.append("issueDate", data.issueDate);
         formData.append("dueDate", data.dueDate);
         formData.append("items", JSON.stringify(data.items));
 
@@ -130,7 +133,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <div className="grid grid-cols-2 gap-6">
-                            <div className="col-span-2 md:col-span-1 space-y-4">
+                            <div className="col-span-2 space-y-4">
                                 <FormField
                                     control={form.control}
                                     name="contactId"
@@ -174,7 +177,23 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                 />
                             </div>
 
-                            <div className="col-span-2 md:col-span-1">
+                            <div className="col-span-1">
+                                <FormField
+                                    control={form.control}
+                                    name="issueDate"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Issue Date</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="col-span-1">
                                 <FormField
                                     control={form.control}
                                     name="dueDate"

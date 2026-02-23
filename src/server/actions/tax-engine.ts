@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
+import { expandRecurringExpenses } from "@/lib/expense-utils";
 
 const IRS_CATEGORIES = [
     "Advertising",
@@ -63,16 +64,17 @@ export async function getTaxSummary(year: number) {
     const grossReceipts = Number(paidInvoices._sum.total || 0);
 
     // 2. Get All Expenses for the year
-    const expenses = await db.expense.findMany({
+    const rawExpenses = await db.expense.findMany({
         where: {
             organizationId: user.organizationId!,
-            date: {
-                gte: startDate,
-                lte: endDate
-            }
-        },
-        orderBy: { date: 'asc' }
+            OR: [
+                { type: "ONE_TIME", date: { gte: startDate, lte: endDate } },
+                { type: "RECURRING", isActive: true, date: { lte: endDate } }
+            ]
+        }
     });
+
+    const expenses = expandRecurringExpenses(rawExpenses, startDate, endDate);
 
     // Group expenses by Tax Category
     const categorizedExpenses: Record<string, typeof expenses> = {

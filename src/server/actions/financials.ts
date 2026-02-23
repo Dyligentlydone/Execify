@@ -2,6 +2,7 @@
 
 import { withTenantScope } from "@/lib/tenant";
 import { db } from "@/lib/db";
+import { expandRecurringExpenses } from "@/lib/expense-utils";
 
 export type PnLData = {
     revenue: number;
@@ -46,13 +47,18 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     const revenue = paidInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
 
     // 2. Expenses: sum in the period
-    const expenses = await db.expense.findMany({
+    const rawExpenses = await db.expense.findMany({
         where: {
             organizationId,
-            date: { gte: start, lte: end },
+            OR: [
+                { type: "ONE_TIME", date: { gte: start, lte: end } },
+                { type: "RECURRING", isActive: true, date: { lte: end } }
+            ]
         },
-        orderBy: { date: "desc" },
+        orderBy: { date: "asc" },
     });
+
+    const expenses = expandRecurringExpenses(rawExpenses, start, end);
 
     const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
@@ -153,14 +159,20 @@ export async function getClientMargins(startDate: string, endDate: string): Prom
     });
 
     // Get all expenses linked to contacts in the period
-    const contactExpenses = await db.expense.findMany({
+    const rawContactExpenses = await db.expense.findMany({
         where: {
             organizationId,
             contactId: { not: null },
-            date: { gte: start, lte: end },
+            OR: [
+                { type: "ONE_TIME", date: { gte: start, lte: end } },
+                { type: "RECURRING", isActive: true, date: { lte: end } }
+            ]
         },
         include: { contact: true },
     });
+
+    // Expand the recurring ones to determine actual amounts incurred in the period
+    const contactExpenses = expandRecurringExpenses(rawContactExpenses, start, end);
 
     // Aggregate by contact
     const marginMap = new Map<string, {

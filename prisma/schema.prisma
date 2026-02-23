@@ -228,6 +228,7 @@ model Invoice {
   tax           Decimal       @default(0)
   total         Decimal
   currency      String        @default("USD")
+  issueDate     DateTime      @default(now())
   dueDate       DateTime?
   paidAt        DateTime?
   notes         String?

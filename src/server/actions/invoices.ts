@@ -15,6 +15,7 @@ const invoiceItemSchema = z.object({
 
 const createInvoiceSchema = z.object({
     contactId: z.string().min(1, "Customer is required"),
+    issueDate: z.string().min(1).transform((str) => new Date(str)),
     dueDate: z.string().min(1).transform((str) => new Date(str)),
     items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
 });
@@ -55,7 +56,7 @@ export async function createInvoice(formData: FormData) {
         return { error: parseResult.error.flatten().fieldErrors };
     }
 
-    const { contactId, dueDate, items: validItems } = parseResult.data;
+    const { contactId, issueDate, dueDate, items: validItems } = parseResult.data;
     const { organizationId, invoices } = await withTenantScope();
     const { requireActiveSubscription } = await import("@/lib/auth");
     await requireActiveSubscription();
@@ -77,6 +78,7 @@ export async function createInvoice(formData: FormData) {
                 organizationId,
                 invoiceNumber,
                 contactId,
+                issueDate,
                 dueDate,
                 status: "DRAFT", // Default status
                 subtotal,
@@ -133,6 +135,7 @@ export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
 }
 
 const updateInvoiceSchema = z.object({
+    issueDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
     dueDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
     items: z.array(z.object({
         id: z.string().optional(),
@@ -160,6 +163,7 @@ export async function updateInvoice(id: string, formData: FormData) {
     }
 
     const parseResult = updateInvoiceSchema.safeParse({
+        issueDate: formData.get("issueDate") as string || undefined,
         dueDate: formData.get("dueDate") as string || undefined,
         items,
     });
@@ -168,7 +172,7 @@ export async function updateInvoice(id: string, formData: FormData) {
         return { error: parseResult.error.flatten().fieldErrors };
     }
 
-    const { dueDate, items: validItems } = parseResult.data;
+    const { issueDate, dueDate, items: validItems } = parseResult.data;
 
     try {
         const subtotal = validItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
@@ -180,6 +184,7 @@ export async function updateInvoice(id: string, formData: FormData) {
         await db.invoice.update({
             where: { id },
             data: {
+                ...(issueDate && { issueDate }),
                 ...(dueDate && { dueDate }),
                 subtotal,
                 total,

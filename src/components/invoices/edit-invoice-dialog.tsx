@@ -36,6 +36,11 @@ export function EditInvoiceDialog({
 }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [issueDate, setIssueDate] = useState(
+        invoice.issueDate
+            ? new Date(invoice.issueDate).toISOString().split("T")[0]
+            : ""
+    );
     const [dueDate, setDueDate] = useState(
         invoice.dueDate
             ? new Date(invoice.dueDate).toISOString().split("T")[0]
@@ -75,6 +80,7 @@ export function EditInvoiceDialog({
     const handleSubmit = async () => {
         setLoading(true);
         const fd = new FormData();
+        if (issueDate) fd.set("issueDate", issueDate);
         if (dueDate) fd.set("dueDate", dueDate);
         fd.set("items", JSON.stringify(items));
 
@@ -111,15 +117,25 @@ export function EditInvoiceDialog({
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
-                    {/* Due Date */}
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-due-date">Due Date</Label>
-                        <Input
-                            id="edit-due-date"
-                            type="date"
-                            value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-issue-date">Issue Date</Label>
+                            <Input
+                                id="edit-issue-date"
+                                type="date"
+                                value={issueDate}
+                                onChange={(e) => setIssueDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-due-date">Due Date</Label>
+                            <Input
+                                id="edit-due-date"
+                                type="date"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {/* Line Items */}

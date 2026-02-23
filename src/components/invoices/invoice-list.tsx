@@ -108,6 +108,14 @@ export function InvoiceList({ data }: { data: InvoiceWithDetails[] }) {
             },
         },
         {
+            accessorKey: "issueDate",
+            header: "Issue Date",
+            cell: ({ row }) => {
+                const date = row.original.issueDate;
+                return date ? <div className="text-muted-foreground">{format(new Date(date), "MMM d, yyyy")}</div> : <span>-</span>;
+            }
+        },
+        {
             accessorKey: "dueDate",
             header: "Due Date",
             cell: ({ row }) => {
