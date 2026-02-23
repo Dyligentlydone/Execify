@@ -113,7 +113,7 @@ export function UserButton({ afterSignOutUrl, ...props }: { afterSignOutUrl?: st
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full" {...props}>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full" suppressHydrationWarning {...props}>
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={DEMO_USER.imageUrl} alt={DEMO_USER.fullName} />
                         <AvatarFallback>DU</AvatarFallback>
@@ -147,6 +147,7 @@ export function OrganizationSwitcher({ hidePersonal, ...props }: { hidePersonal?
                     role="combobox"
                     aria-label="Select organization"
                     className="w-[200px] justify-between"
+                    suppressHydrationWarning
                     {...props}
                 >
                     <Avatar className="mr-2 h-5 w-5">

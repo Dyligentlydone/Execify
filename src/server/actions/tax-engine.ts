@@ -83,7 +83,7 @@ export async function getTaxSummary(year: number) {
     for (const exp of expenses) {
         if (!exp.taxCategory) {
             categorizedExpenses["Uncategorized"].push(exp);
-        } else if (IRS_CATEGORIES.includes(exp.taxCategory as any)) {
+        } else if (exp.taxCategory && IRS_CATEGORIES.includes(exp.taxCategory)) {
             categorizedExpenses[exp.taxCategory].push(exp);
 
             // Handle 50% limit for Meals
@@ -100,9 +100,17 @@ export async function getTaxSummary(year: number) {
 
     const netProfit = grossReceipts - totalDeductions;
 
-    // Filter out empty arrays to keep payload small
+    // Filter out empty arrays and map to plain objects to fix Decimal serialization error
     const activeCategories = Object.fromEntries(
-        Object.entries(categorizedExpenses).filter(([_, exps]) => exps.length > 0)
+        Object.entries(categorizedExpenses)
+            .filter(([, exps]) => exps.length > 0)
+            .map(([cat, exps]) => [
+                cat,
+                exps.map((e) => ({
+                    ...e,
+                    amount: Number(e.amount)
+                }))
+            ])
     );
 
     return {
@@ -167,7 +175,7 @@ export async function categorizeExpensesWithAI(year: number) {
         }
 
         return { success: true, count: updatedCount };
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("AI Categorization Error", e);
         return { success: false, error: "Failed to categorize expenses." };
     }
