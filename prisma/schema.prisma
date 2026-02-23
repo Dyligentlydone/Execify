@@ -38,6 +38,10 @@ model Organization {
   aiActionLogs     AIActionLog[]
   integrations     Integration[]
   expenses         Expense[]
+
+  // Tax Settings
+  taxProfile    String?   @default("standard")
+  customTaxRate Float?
 }
 
 enum Plan {

@@ -16,7 +16,7 @@ import {
     ChevronsUpDown
 } from "lucide-react";
 import { toast } from "sonner";
-import { getTaxSummary, categorizeExpensesWithAI } from "@/server/actions/tax-engine";
+import { getTaxSummary, categorizeExpensesWithAI, saveTaxProfile } from "@/server/actions/tax-engine";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -99,6 +99,7 @@ export function TaxDashboard() {
     const [data, setData] = useState<TaxData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAiCategorizing, startAiTransition] = useTransition();
+    const [isSavingProfile, startSavingTransition] = useTransition();
 
     const [taxProfile, setTaxProfile] = useState("standard");
     const [customRate, setCustomRate] = useState(30);
@@ -116,6 +117,8 @@ export function TaxDashboard() {
         try {
             const summary = await getTaxSummary(year);
             setData(summary);
+            setTaxProfile(summary.savedProfile);
+            setCustomRate(summary.savedCustomRate);
         } catch (error) {
             toast.error("Failed to load tax data");
         } finally {
@@ -135,6 +138,18 @@ export function TaxDashboard() {
                 await loadData();
             } else {
                 toast.error(res.error || "Failed to categorize");
+            }
+        });
+    };
+
+    const handleSaveProfile = () => {
+        startSavingTransition(async () => {
+            const res = await saveTaxProfile(taxProfile, taxProfile === "custom" ? customRate : null);
+            if (res.success) {
+                toast.success("Tax profile saved as default.");
+                setComboboxOpen(false);
+            } else {
+                toast.error("Failed to save tax profile.");
             }
         });
     };
@@ -349,9 +364,16 @@ export function TaxDashboard() {
                                 </div>
                                 <div className="pt-2 border-t flex justify-between font-bold text-amber-600">
                                     <span>Estimated Tax Owed:</span>
-                                    <span>${(data.netProfit * (effectiveRate / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
+                            <Button
+                                onClick={handleSaveProfile}
+                                disabled={isSavingProfile}
+                                className="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-white"
+                            >
+                                {isSavingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                Save as Default
+                            </Button>
                         </div>
                     </DialogContent>
                 </Dialog>

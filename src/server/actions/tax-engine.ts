@@ -37,6 +37,11 @@ export type IRSCategory = typeof IRS_CATEGORIES[number];
 export async function getTaxSummary(year: number) {
     const user = await requireRole("VIEWER");
 
+    const org = await db.organization.findUnique({
+        where: { id: user.organizationId! },
+        select: { taxProfile: true, customTaxRate: true }
+    });
+
     // 1. Get Gross Receipts (Paid Invoices)
     const startDate = new Date(`${year}-01-01T00:00:00Z`);
     const endDate = new Date(`${year}-12-31T23:59:59Z`);
@@ -119,7 +124,9 @@ export async function getTaxSummary(year: number) {
         totalDeductions,
         netProfit,
         categories: activeCategories,
-        uncategorizedCount: categorizedExpenses["Uncategorized"].length
+        uncategorizedCount: categorizedExpenses["Uncategorized"].length,
+        savedProfile: org?.taxProfile || "standard",
+        savedCustomRate: org?.customTaxRate || 30
     };
 }
 
@@ -179,4 +186,18 @@ export async function categorizeExpensesWithAI(year: number) {
         console.error("AI Categorization Error", e);
         return { success: false, error: "Failed to categorize expenses." };
     }
+}
+
+export async function saveTaxProfile(taxProfile: string, customTaxRate: number | null) {
+    const user = await requireRole("MANAGER");
+
+    await db.organization.update({
+        where: { id: user.organizationId! },
+        data: {
+            taxProfile,
+            customTaxRate
+        }
+    });
+
+    return { success: true };
 }
