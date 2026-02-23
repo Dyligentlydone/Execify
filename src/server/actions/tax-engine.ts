@@ -83,7 +83,7 @@ export async function getTaxSummary(year: number) {
     for (const exp of expenses) {
         if (!exp.taxCategory) {
             categorizedExpenses["Uncategorized"].push(exp);
-        } else if (exp.taxCategory && IRS_CATEGORIES.includes(exp.taxCategory)) {
+        } else if (exp.taxCategory && IRS_CATEGORIES.includes(exp.taxCategory as IRSCategory)) {
             categorizedExpenses[exp.taxCategory].push(exp);
 
             // Handle 50% limit for Meals
