@@ -43,8 +43,15 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
         const primaryEmail = clerkUser.emailAddresses[0]?.emailAddress;
         if (!primaryEmail) return null;
 
-        user = await db.user.create({
-            data: {
+        user = await db.user.upsert({
+            where: { email: primaryEmail },
+            update: {
+                clerkUserId: userId,
+                firstName: clerkUser.firstName,
+                lastName: clerkUser.lastName,
+                avatarUrl: clerkUser.imageUrl,
+            },
+            create: {
                 clerkUserId: userId,
                 email: primaryEmail,
                 firstName: clerkUser.firstName,

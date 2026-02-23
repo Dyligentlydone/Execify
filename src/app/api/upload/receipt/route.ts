@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomUUID } from "crypto";
+import { createClient } from "@supabase/supabase-js";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
     try {
@@ -28,17 +32,26 @@ export async function POST(request: NextRequest) {
 
         const ext = file.name.split(".").pop() || "bin";
         const filename = `${randomUUID()}.${ext}`;
-        const uploadDir = join(process.cwd(), "public", "uploads", "receipts");
-
-        // Ensure upload directory exists
-        await mkdir(uploadDir, { recursive: true });
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        await writeFile(join(uploadDir, filename), buffer);
 
-        const url = `/uploads/receipts/${filename}`;
+        const { data, error } = await supabase.storage
+            .from("receipts")
+            .upload(filename, buffer, {
+                contentType: file.type,
+                upsert: false
+            });
 
-        return NextResponse.json({ success: true, url });
+        if (error) {
+            console.error("Supabase storage error:", error);
+            return NextResponse.json({ error: "Failed to upload to storage" }, { status: 500 });
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from("receipts")
+            .getPublicUrl(filename);
+
+        return NextResponse.json({ success: true, url: publicUrl });
     } catch (error) {
         console.error("Upload failed:", error);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
