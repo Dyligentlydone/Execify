@@ -57,6 +57,11 @@ export async function createInvoice(formData: FormData) {
     }
 
     const { contactId, issueDate, dueDate, items: validItems } = parseResult.data;
+
+    // Noor UTC Buffer to prevent timezone drift
+    issueDate.setUTCHours(12, 0, 0, 0);
+    dueDate.setUTCHours(12, 0, 0, 0);
+
     const { organizationId, invoices } = await withTenantScope();
     const { requireActiveSubscription } = await import("@/lib/auth");
     await requireActiveSubscription();
@@ -173,6 +178,10 @@ export async function updateInvoice(id: string, formData: FormData) {
     }
 
     const { issueDate, dueDate, items: validItems } = parseResult.data;
+
+    // Noon UTC Buffer to prevent timezone drift
+    if (issueDate) issueDate.setUTCHours(12, 0, 0, 0);
+    if (dueDate) dueDate.setUTCHours(12, 0, 0, 0);
 
     try {
         const subtotal = validItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);

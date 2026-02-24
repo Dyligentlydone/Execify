@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash, Calculator, UserPlus } from "lucide-react";
+import { Loader2, Plus, Trash, Calculator, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -23,6 +23,7 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,9 +33,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { createInvoice } from "@/server/actions/invoices";
+import { createRecurringInvoice } from "@/server/actions/recurring-invoices";
 import type { Contact } from "@/generated/prisma/client";
 import { InlineContactForm } from "@/components/crm/inline-contact-form";
+
+const RECURRING_FREQUENCIES = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"] as const;
 
 const invoiceItemSchema = z.object({
     description: z.string().min(1, "Description is required"),
@@ -43,9 +48,16 @@ const invoiceItemSchema = z.object({
 });
 
 const createInvoiceSchema = z.object({
+    isRecurring: z.boolean().default(false),
     contactId: z.string().min(1, "Customer is required"),
-    issueDate: z.string().min(1, "Issue date is required"),
+    issueDate: z.string().min(1, "Date is required"),
     dueDate: z.string().min(1, "Due date is required"),
+
+    // Recurring specific
+    name: z.string().optional(),
+    frequency: z.enum(RECURRING_FREQUENCIES).optional(),
+    interval: z.coerce.number().min(1).optional(),
+
     items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
 });
 
@@ -65,10 +77,14 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
     const form = useForm<InvoiceFormValues>({
         resolver: zodResolver(createInvoiceSchema) as any,
         defaultValues: {
+            isRecurring: false,
             contactId: "",
             issueDate: new Date().toISOString().split("T")[0],
             dueDate: new Date().toISOString().split("T")[0],
             items: [{ description: "", quantity: 1, unitPrice: 0 }],
+            frequency: "MONTHLY",
+            interval: 1,
+            name: "",
         },
     });
 
@@ -77,6 +93,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
         control: form.control,
     });
 
+    const isRecurring = form.watch("isRecurring");
     const items = form.watch("items");
     const total = items?.reduce((sum, item) => sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0) || 0;
 
@@ -85,16 +102,32 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
 
         const formData = new FormData();
         formData.append("contactId", data.contactId);
-        formData.append("issueDate", data.issueDate);
-        formData.append("dueDate", data.dueDate);
         formData.append("items", JSON.stringify(data.items));
 
-        const result = await createInvoice(formData);
+        let result;
+
+        if (data.isRecurring) {
+            if (!data.name || !data.frequency || !data.interval) {
+                toast.error("Please fill in all recurring fields.");
+                setLoading(false);
+                return;
+            }
+            formData.append("name", data.name);
+            formData.append("frequency", data.frequency);
+            formData.append("interval", data.interval.toString());
+            formData.append("startDate", data.issueDate); // Recurring start date maps from issueDate
+
+            result = await createRecurringInvoice(formData);
+        } else {
+            formData.append("issueDate", data.issueDate);
+            formData.append("dueDate", data.dueDate);
+            result = await createInvoice(formData);
+        }
 
         if (result?.error) {
             toast.error(typeof result.error === "string" ? result.error : "Failed to create invoice");
         } else {
-            toast.success("Invoice created successfully");
+            toast.success(data.isRecurring ? "Recurring template created" : "Invoice created successfully");
             setOpen(false);
             form.reset();
         }
@@ -124,16 +157,59 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
             </DialogTrigger>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Create Invoice</DialogTitle>
+                    <DialogTitle>{isRecurring ? "Setup Recurring Invoice" : "Create Invoice"}</DialogTitle>
                     <DialogDescription>
-                        Generate a new invoice for a customer.
+                        {isRecurring ? "Create a template that automatically generates invoices on a schedule." : "Generate a new invoice for a customer."}
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <div className="grid grid-cols-2 gap-6">
-                            <div className="col-span-2 space-y-4">
+
+                            {/* Toggle Recurring */}
+                            <FormField
+                                control={form.control}
+                                name="isRecurring"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                            <FormLabel className="text-base flex items-center">
+                                                <Repeat className="w-4 h-4 mr-2 text-primary" />
+                                                Make this a recurring invoice
+                                            </FormLabel>
+                                            <FormDescription>
+                                                Automatically generate this invoice on a schedule.
+                                            </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Recurring Specific: Template Name */}
+                            {isRecurring && (
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2 animate-in fade-in slide-in-from-top-2">
+                                            <FormLabel>Template Name</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="e.g. Monthly Retainer - Acme Corp" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            <div className="col-span-2 md:col-span-1 space-y-4">
                                 <FormField
                                     control={form.control}
                                     name="contactId"
@@ -183,7 +259,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                     name="issueDate"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Issue Date</FormLabel>
+                                            <FormLabel>{isRecurring ? "First Invoice Date" : "Issue Date"}</FormLabel>
                                             <FormControl>
                                                 <Input type="date" {...field} />
                                             </FormControl>
@@ -193,21 +269,64 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                 />
                             </div>
 
-                            <div className="col-span-1">
-                                <FormField
-                                    control={form.control}
-                                    name="dueDate"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Due Date</FormLabel>
-                                            <FormControl>
-                                                <Input type="date" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                            {/* Recurring Specific: Frequency & Interval */}
+                            {isRecurring ? (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="frequency"
+                                        render={({ field }) => (
+                                            <FormItem className="animate-in fade-in slide-in-from-top-2">
+                                                <FormLabel>Frequency</FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select frequency" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="DAILY">Daily</SelectItem>
+                                                        <SelectItem value="WEEKLY">Weekly</SelectItem>
+                                                        <SelectItem value="MONTHLY">Monthly</SelectItem>
+                                                        <SelectItem value="YEARLY">Yearly</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="interval"
+                                        render={({ field }) => (
+                                            <FormItem className="animate-in fade-in slide-in-from-top-2">
+                                                <FormLabel>Interval (Every X)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="1" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            ) : (
+                                <div className="col-span-1">
+                                    <FormField
+                                        control={form.control}
+                                        name="dueDate"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Due Date</FormLabel>
+                                                <FormControl>
+                                                    <Input type="date" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
                         </div>
 
                         <div className="space-y-4 rounded-xl border bg-card p-4">
@@ -300,10 +419,11 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
+                                className="min-w-[150px] gold-surface border-0 text-black hover:opacity-90 transition-all font-semibold"
                             >
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Invoice
+                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
+                                    isRecurring ? <><Repeat className="mr-2 h-4 w-4" /> Start Recurring</> : "Create Invoice"
+                                )}
                             </Button>
                         </DialogFooter>
                     </form>

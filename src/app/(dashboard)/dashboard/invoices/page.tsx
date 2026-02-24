@@ -8,7 +8,6 @@ import { getContacts } from "@/server/actions/contacts";
 import { getRecurringInvoices, processRecurringBilling } from "@/server/actions/recurring-invoices";
 import { CreateInvoiceDialog } from "@/components/invoices/create-invoice-dialog";
 import { InvoiceList } from "@/components/invoices/invoice-list";
-import { CreateRecurringInvoiceDialog } from "@/components/finance/create-recurring-invoice-dialog";
 import { RecurringInvoiceList } from "@/components/finance/recurring-invoice-list";
 import { Loader2, Receipt, Repeat } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,7 +54,6 @@ export default async function InvoicesPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <CreateRecurringInvoiceDialog contacts={contacts.data} isReadOnly={isReadOnly} />
                     <CreateInvoiceDialog contacts={contacts.data} isReadOnly={isReadOnly} />
                 </div>
             </div>

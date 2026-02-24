@@ -77,7 +77,10 @@ export async function createRecurringInvoice(formData: FormData) {
         const tax = 0;
         const total = subtotal + tax;
 
-        await db.recurringInvoice.create({
+        let currentNextRunDate = new Date(startDate);
+        currentNextRunDate.setUTCHours(12, 0, 0, 0); // Noon UTC buffer
+
+        const template = await db.recurringInvoice.create({
             data: {
                 organizationId,
                 name,
@@ -85,7 +88,7 @@ export async function createRecurringInvoice(formData: FormData) {
                 frequency,
                 interval,
                 startDate,
-                nextRunDate: fastForwardNextRunDate(startDate, frequency, interval),
+                nextRunDate: currentNextRunDate,
                 status: "ACTIVE",
                 subtotal,
                 tax,
@@ -102,7 +105,60 @@ export async function createRecurringInvoice(formData: FormData) {
                     }))
                 }
             },
+            include: { items: true }
         });
+
+        // Generate historical invoices if the start date is in the past
+        const now = new Date();
+        now.setUTCHours(12, 0, 0, 0); // Noon today
+
+        while (currentNextRunDate <= now) {
+            await db.$transaction(async (tx) => {
+                const count = await tx.invoice.count({ where: { organizationId } });
+                const invoiceNumber = `INV-${(count + 1).toString().padStart(4, "0")}`;
+
+                const intendedDate = new Date(currentNextRunDate);
+                intendedDate.setUTCHours(12, 0, 0, 0);
+
+                const nextDate = calculateNextRunDate(intendedDate, frequency, interval);
+                nextDate.setUTCHours(12, 0, 0, 0);
+
+                const dueDate = new Date(nextDate);
+
+                await tx.invoice.create({
+                    data: {
+                        organizationId,
+                        invoiceNumber,
+                        contactId,
+                        issueDate: intendedDate,
+                        dueDate: dueDate,
+                        status: "SENT",
+                        subtotal: template.subtotal,
+                        tax: template.tax,
+                        total: template.total,
+                        currency: template.currency,
+                        createdById: template.createdById,
+                        recurringInvoiceId: template.id,
+                        notes: template.notes,
+                        items: {
+                            create: template.items.map(item => ({
+                                description: item.description,
+                                quantity: item.quantity,
+                                unitPrice: item.unitPrice,
+                                total: item.total
+                            }))
+                        }
+                    }
+                });
+
+                currentNextRunDate = nextDate;
+
+                await tx.recurringInvoice.update({
+                    where: { id: template.id },
+                    data: { nextRunDate: currentNextRunDate }
+                });
+            });
+        }
 
         revalidatePath("/dashboard/invoices");
         return { success: true };
@@ -287,29 +343,3 @@ function calculateNextRunDate(current: Date, frequency: RecurringFrequency, inte
     }
 }
 
-function fastForwardNextRunDate(start: Date, frequency: RecurringFrequency, interval: number): Date {
-    const now = startOfDay(new Date());
-    let candidate = new Date(start);
-    candidate.setUTCHours(12, 0, 0, 0); // Normalise to Noon UTC
-
-    // If the start date is today or in the future, that's our first run
-    if (!isPast(candidate) || isToday(candidate)) {
-        return candidate;
-    }
-
-    // Fast forward until we reach the LATEST date that is still <= today
-    while (true) {
-        let next = calculateNextRunDate(candidate, frequency, interval);
-        next.setUTCHours(12, 0, 0, 0); // Keep Noon UTC
-
-        // If the next occurrence is still in the past or is today, it becomes our new candidate
-        if (isPast(next) || isToday(next)) {
-            candidate = next;
-        } else {
-            // The next occurrence is in the future, so our current candidate is the most recent one
-            break;
-        }
-    }
-
-    return candidate;
-}
