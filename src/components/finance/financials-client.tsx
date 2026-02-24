@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { format, startOfYear } from "date-fns";
+import { format, startOfYear, endOfMonth } from "date-fns";
 import { Loader2, BarChart3, Receipt, DollarSign, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRangePicker } from "@/components/finance/date-range-picker";
@@ -18,7 +18,7 @@ function getDefaultRange() {
     return {
         label: "Year to Date",
         startDate: format(startOfYear(now), "yyyy-MM-dd"),
-        endDate: format(now, "yyyy-MM-dd"),
+        endDate: format(endOfMonth(now), "yyyy-MM-dd"),
     };
 }
 
