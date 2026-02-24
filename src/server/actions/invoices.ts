@@ -70,8 +70,19 @@ export async function createInvoice(formData: FormData) {
     if (!user) return { error: "Unauthorized" };
 
     try {
-        const count = await invoices.count();
-        const invoiceNumber = `INV-${(count + 1).toString().padStart(4, "0")}`;
+        const latestInvoice = await db.invoice.findFirst({
+            where: { organizationId },
+            orderBy: { invoiceNumber: 'desc' }
+        });
+
+        let nextNumber = 1;
+        if (latestInvoice) {
+            const match = latestInvoice.invoiceNumber.match(/INV-(\d+)/);
+            if (match) {
+                nextNumber = parseInt(match[1], 10) + 1;
+            }
+        }
+        const invoiceNumber = `INV-${nextNumber.toString().padStart(4, "0")}`;
 
         // Calculate totals
         const subtotal = validItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);

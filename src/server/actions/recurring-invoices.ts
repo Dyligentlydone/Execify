@@ -114,8 +114,19 @@ export async function createRecurringInvoice(formData: FormData) {
 
         while (currentNextRunDate <= now) {
             await db.$transaction(async (tx) => {
-                const count = await tx.invoice.count({ where: { organizationId } });
-                const invoiceNumber = `INV-${(count + 1).toString().padStart(4, "0")}`;
+                const latestInvoice = await tx.invoice.findFirst({
+                    where: { organizationId },
+                    orderBy: { invoiceNumber: 'desc' }
+                });
+
+                let nextNumber = 1;
+                if (latestInvoice) {
+                    const match = latestInvoice.invoiceNumber.match(/INV-(\d+)/);
+                    if (match) {
+                        nextNumber = parseInt(match[1], 10) + 1;
+                    }
+                }
+                const invoiceNumber = `INV-${nextNumber.toString().padStart(4, "0")}`;
 
                 const intendedDate = new Date(currentNextRunDate);
                 intendedDate.setUTCHours(12, 0, 0, 0);
@@ -268,8 +279,19 @@ export async function processRecurringBilling() {
         try {
             await db.$transaction(async (tx) => {
                 // 1. Generate the actual invoice
-                const count = await tx.invoice.count({ where: { organizationId: template.organizationId } });
-                const invoiceNumber = `INV-${(count + 1).toString().padStart(4, "0")}`;
+                const latestInvoice = await tx.invoice.findFirst({
+                    where: { organizationId: template.organizationId },
+                    orderBy: { invoiceNumber: 'desc' }
+                });
+
+                let nextNumber = 1;
+                if (latestInvoice) {
+                    const match = latestInvoice.invoiceNumber.match(/INV-(\d+)/);
+                    if (match) {
+                        nextNumber = parseInt(match[1], 10) + 1;
+                    }
+                }
+                const invoiceNumber = `INV-${nextNumber.toString().padStart(4, "0")}`;
 
                 // 2. Update nextRunDate
                 const intendedDate = new Date(template.nextRunDate);
