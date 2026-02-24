@@ -8,6 +8,8 @@ export type PnLData = {
     revenue: number;
     expenses: number;
     netProfitLoss: number;
+    actualInvoiceCount: number;
+    projectedInvoiceCount: number;
     expensesByCategory: { category: string; total: number }[];
     monthlyBreakdown: {
         month: string;
@@ -30,7 +32,7 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
 
 
     // 1. Revenue: sum of PAID invoices in the period
-    // Update: use issueDate for Accrual Basis (when the work was billed)
+    // Use issueDate for Accrual Basis (when the work was billed/performed)
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
@@ -42,6 +44,7 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     });
 
     // 1b. Projected Revenue: active recurring invoices
+    // We only project revenue if an actual invoice hasn't been paid for that slot yet
     const rawRecurring = await db.recurringInvoice.findMany({
         where: {
             organizationId,
@@ -63,8 +66,26 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
         end
     );
 
+    // De-duplicate: If we have a paid invoice for a recurring plan in a specific month,
+    // don't count the projection for that month.
+    const filteredProjections = projectedRecurring.filter(proj => {
+        const projMonth = `${proj.date.getFullYear()}-${proj.date.getMonth()}`;
+
+        // Find if any paid invoice exists for this recurring plan in the same month
+        // We strip the expanded ID back to the original recurring ID
+        const recurringId = proj.id.split('-')[0];
+
+        const alreadyPaid = paidInvoices.some(inv => {
+            if (inv.recurringInvoiceId !== recurringId) return false;
+            const invMonth = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
+            return invMonth === projMonth;
+        });
+
+        return !alreadyPaid;
+    });
+
     const actualRevenue = paidInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
-    const projectedRevenue = projectedRecurring.reduce((sum, ri) => sum + Number(ri.amount), 0);
+    const projectedRevenue = filteredProjections.reduce((sum, ri) => sum + Number(ri.amount), 0);
     const revenue = actualRevenue + projectedRevenue;
 
     // 2. Expenses: sum in the period
@@ -119,8 +140,8 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
         }
     }
 
-    // Add projected recurring revenue to the chart
-    for (const proj of projectedRecurring) {
+    // Add filtered projected recurring revenue to the chart
+    for (const proj of filteredProjections) {
         const d = new Date(proj.date);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
@@ -162,6 +183,8 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
         revenue: Math.round(revenue * 100) / 100,
         expenses: Math.round(totalExpenses * 100) / 100,
         netProfitLoss: Math.round((revenue - totalExpenses) * 100) / 100,
+        actualInvoiceCount: paidInvoices.length,
+        projectedInvoiceCount: filteredProjections.length,
         expensesByCategory,
         monthlyBreakdown,
         recentIncome,

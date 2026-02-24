@@ -47,7 +47,7 @@ export async function getTaxSummary(year: number) {
     const startDate = new Date(`${year}-01-01T00:00:00Z`);
     const endDate = new Date(`${year}-12-31T23:59:59Z`);
 
-    const paidInvoices = await db.invoice.aggregate({
+    const paidInvoicesResult = await db.invoice.findMany({
         where: {
             organizationId: user.organizationId!,
             status: "PAID",
@@ -56,12 +56,56 @@ export async function getTaxSummary(year: number) {
                 lte: endDate
             }
         },
-        _sum: {
-            total: true
+        select: { total: true, recurringInvoiceId: true, paidAt: true }
+    });
+
+    const actualRevenue = paidInvoicesResult.reduce((sum, inv) => sum + Number(inv.total), 0);
+
+    // Get Active Recurring Invoices to project future revenue
+    const activeRecurring = await db.recurringInvoice.findMany({
+        where: {
+            organizationId: user.organizationId!,
+            status: "ACTIVE"
         }
     });
 
-    const grossReceipts = Number(paidInvoices._sum.total || 0);
+    // Project revenue until year end
+    // For taxes, we project the REST of the year to give a full-year estimate
+    const now = new Date();
+    const projections = expandRecurringExpenses(
+        activeRecurring.map(ri => ({
+            id: ri.id,
+            date: ri.nextRunDate,
+            type: "RECURRING",
+            isActive: true,
+            frequency: ri.frequency,
+            interval: ri.interval,
+            amount: ri.total
+        })),
+        startDate,
+        endDate
+    );
+
+    // De-duplicate: If an invoice for the same recurring plan was already PAID in that month,
+    // don't count the projection for that month.
+    const filteredProjections = projections.filter(proj => {
+        // Only count projections in the future
+        if (proj.date <= now) return false;
+
+        const projMonthKey = `${proj.date.getFullYear()}-${proj.date.getMonth()}`;
+        const recurringId = proj.id.split('-')[0];
+
+        const alreadyPaidInMonth = paidInvoicesResult.some(inv => {
+            if (inv.recurringInvoiceId !== recurringId || !inv.paidAt) return false;
+            const paidMonthKey = `${inv.paidAt.getFullYear()}-${inv.paidAt.getMonth()}`;
+            return paidMonthKey === projMonthKey;
+        });
+
+        return !alreadyPaidInMonth;
+    });
+
+    const projectedRevenue = filteredProjections.reduce((sum, p) => sum + Number(p.amount), 0);
+    const grossReceipts = actualRevenue + projectedRevenue;
 
     // 2. Get All Expenses for the year
     const rawExpenses = await db.expense.findMany({

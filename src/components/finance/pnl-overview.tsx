@@ -72,7 +72,8 @@ export function PnLOverview({ data }: Props) {
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                        From {data.recentIncome.length} paid invoice{data.recentIncome.length !== 1 ? "s" : ""}
+                        {data.actualInvoiceCount} paid {data.actualInvoiceCount === 1 ? "invoice" : "invoices"}
+                        {data.projectedInvoiceCount > 0 && ` + ${data.projectedInvoiceCount} projected`}
                     </p>
                 </Card>
 
