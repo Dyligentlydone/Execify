@@ -28,15 +28,15 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
 
 
     // 1. Revenue: sum of PAID invoices in the period
-    // Switching to Cash Basis (paidAt) as per user request to match YTD expectations
+    // Filter by issueDate so historical invoices don't flood the month they are clicked "Paid" in.
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
-            paidAt: { gte: start, lte: end },
+            issueDate: { gte: start, lte: end },
         },
         include: { contact: true },
-        orderBy: { paidAt: "desc" },
+        orderBy: { issueDate: "desc" },
     });
 
     // 1b. Projected Revenue: active recurring invoices
@@ -78,7 +78,7 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
             if (inv.contactId !== recurringPlan.contactId) return false;
             if (Math.abs(Number(inv.total) - Number(proj.amount)) > 0.01) return false;
 
-            const invMonth = `${inv.paidAt!.getFullYear()}-${inv.paidAt!.getMonth()}`;
+            const invMonth = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
             return invMonth === projMonth;
         });
 
