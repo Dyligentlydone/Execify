@@ -32,15 +32,15 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
 
 
     // 1. Revenue: sum of PAID invoices in the period
-    // Use issueDate for Accrual Basis (when the work was billed/performed)
+    // Switching to Cash Basis (paidAt) as per user request to match YTD expectations
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
-            issueDate: { gte: start, lte: end },
+            paidAt: { gte: start, lte: end },
         },
         include: { contact: true },
-        orderBy: { issueDate: "desc" },
+        orderBy: { paidAt: "desc" },
     });
 
     // 1b. Projected Revenue: active recurring invoices
@@ -49,7 +49,8 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
         where: {
             organizationId,
             status: "ACTIVE"
-        }
+        },
+        include: { contact: true }
     });
 
     const projectedRecurring = expandRecurringExpenses(
@@ -66,18 +67,22 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
         end
     );
 
-    // De-duplicate: If we have a paid invoice for a recurring plan in a specific month,
-    // don't count the projection for that month.
+    // De-duplicate: Fuzzy matching
+    // If we have a paid invoice for this contact and amount in the same month, 
+    // hide the projection because it's likely a manual or unlinked invoice.
     const filteredProjections = projectedRecurring.filter(proj => {
         const projMonth = `${proj.date.getFullYear()}-${proj.date.getMonth()}`;
 
-        // Find if any paid invoice exists for this recurring plan in the same month
-        // We strip the expanded ID back to the original recurring ID
-        const recurringId = proj.id.split('-')[0];
+        // Find the recurring plan to get the contactId
+        const recurringPlan = rawRecurring.find(r => r.id === proj.id.split('-')[0]);
+        if (!recurringPlan) return true;
 
         const alreadyPaid = paidInvoices.some(inv => {
-            if (inv.recurringInvoiceId !== recurringId) return false;
-            const invMonth = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
+            // Check if same contact and same amount (fuzzy matching for manual invoices)
+            if (inv.contactId !== recurringPlan.contactId) return false;
+            if (Math.abs(Number(inv.total) - Number(proj.amount)) > 0.01) return false;
+
+            const invMonth = `${inv.paidAt!.getFullYear()}-${inv.paidAt!.getMonth()}`;
             return invMonth === projMonth;
         });
 
@@ -131,8 +136,8 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     }
 
     for (const inv of paidInvoices) {
-        // Use issueDate reflecting performance
-        const d = new Date(inv.issueDate);
+        // Use paidAt for Cash Basis
+        const d = new Date(inv.paidAt!);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
         if (entry) {
@@ -176,7 +181,7 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
             ? `${inv.contact.firstName} ${inv.contact.lastName}`
             : "Unknown",
         amount: Number(inv.total),
-        paidAt: (inv.paidAt || inv.createdAt)?.toISOString() || null,
+        paidAt: inv.paidAt?.toISOString() || null,
     }));
 
     return {
@@ -209,13 +214,13 @@ export async function getClientMargins(startDate: string, endDate: string): Prom
     end.setUTCDate(end.getUTCDate() + 1);
     end.setUTCHours(23, 59, 59, 999);
 
-    // Get all paid invoices in the period grouped by contact based on issueDate
+    // Get all paid invoices in the period grouped by contact based on paidAt (Cash Basis)
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
             contactId: { not: null },
-            issueDate: { gte: start, lte: end },
+            paidAt: { gte: start, lte: end },
         },
         include: { contact: true },
     });
