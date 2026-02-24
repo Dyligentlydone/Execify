@@ -6,6 +6,7 @@ import { withTenantScope } from "@/lib/tenant";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { RecurringStatus, RecurringFrequency, Role } from "@/generated/prisma/client";
+import { addDays, addWeeks, addMonths, addYears, isPast, isToday, startOfDay } from "date-fns";
 
 const recurringItemSchema = z.object({
     description: z.string().min(1, "Description is required"),
@@ -81,7 +82,7 @@ export async function createRecurringInvoice(formData: FormData) {
                 frequency,
                 interval,
                 startDate,
-                nextRunDate: startDate, // First run is on start date
+                nextRunDate: fastForwardNextRunDate(startDate, frequency, interval),
                 status: "ACTIVE",
                 subtotal,
                 tax,
@@ -211,12 +212,20 @@ export async function processRecurringBilling() {
                 const count = await tx.invoice.count({ where: { organizationId: template.organizationId } });
                 const invoiceNumber = `INV-${(count + 1).toString().padStart(4, "0")}`;
 
+                // 2. Update nextRunDate
+                const intendedDate = new Date(template.nextRunDate);
+                const nextDate = calculateNextRunDate(template.nextRunDate, template.frequency, template.interval);
+
+                // 2b. Calculate the next-next date for the due date (billed for next month)
+                const dueDate = calculateNextRunDate(intendedDate, template.frequency, template.interval);
+
                 await tx.invoice.create({
                     data: {
                         organizationId: template.organizationId,
                         invoiceNumber,
                         contactId: template.contactId,
-                        dueDate: new Date(), // Due immediately for recurring
+                        issueDate: intendedDate, // Use the date it was intended for
+                        dueDate: dueDate,        // Due on the next occurrence date
                         status: "SENT", // Usually auto-sent
                         subtotal: template.subtotal,
                         tax: template.tax,
@@ -235,9 +244,6 @@ export async function processRecurringBilling() {
                         }
                     }
                 });
-
-                // 2. Update nextRunDate
-                const nextDate = calculateNextRunDate(template.nextRunDate, template.frequency, template.interval);
 
                 await tx.recurringInvoice.update({
                     where: { id: template.id },
@@ -262,17 +268,31 @@ function calculateNextRunDate(current: Date, frequency: RecurringFrequency, inte
     const next = new Date(current);
     switch (frequency) {
         case "DAILY":
-            next.setDate(next.getDate() + interval);
-            break;
+            return addDays(next, interval);
         case "WEEKLY":
-            next.setDate(next.getDate() + interval * 7);
-            break;
+            return addWeeks(next, interval);
         case "MONTHLY":
-            next.setMonth(next.getMonth() + interval);
-            break;
+            return addMonths(next, interval);
         case "YEARLY":
-            next.setFullYear(next.getFullYear() + interval);
-            break;
+            return addYears(next, interval);
+        default:
+            return next;
     }
+}
+
+function fastForwardNextRunDate(start: Date, frequency: RecurringFrequency, interval: number): Date {
+    const now = startOfDay(new Date());
+    let next = new Date(start);
+
+    // If the start date is today or in the future, that's our first run
+    if (!isPast(next) || isToday(next)) {
+        return next;
+    }
+
+    // Fast forward until we reach a date that is today or in the future
+    while (isPast(next) && !isToday(next)) {
+        next = calculateNextRunDate(next, frequency, interval);
+    }
+
     return next;
 }
