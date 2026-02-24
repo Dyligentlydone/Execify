@@ -51,7 +51,7 @@ const createInvoiceSchema = z.object({
     isRecurring: z.boolean().default(false),
     contactId: z.string().min(1, "Customer is required"),
     issueDate: z.string().min(1, "Date is required"),
-    dueDate: z.string().min(1, "Due date is required"),
+    dueDate: z.string().optional(),
 
     // Recurring specific
     name: z.string().optional(),
@@ -119,6 +119,11 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
 
             result = await createRecurringInvoice(formData);
         } else {
+            if (!data.dueDate) {
+                toast.error("Due date is required for single invoices.");
+                setLoading(false);
+                return;
+            }
             formData.append("issueDate", data.issueDate);
             formData.append("dueDate", data.dueDate);
             result = await createInvoice(formData);
