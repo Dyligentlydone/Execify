@@ -3,6 +3,7 @@
 import { withTenantScope } from "@/lib/tenant";
 import { db } from "@/lib/db";
 import { expandRecurringExpenses } from "@/lib/expense-utils";
+import { startOfDay, endOfDay } from "date-fns";
 
 export type PnLData = {
     revenue: number;
@@ -22,13 +23,8 @@ export type PnLData = {
 export async function getPnLData(startDate: string, endDate: string): Promise<PnLData> {
     const { organizationId } = await withTenantScope();
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    // Add 1 full day buffer + end-of-day in UTC to handle timezone drift
-    // Client sends "2026-02-16" (local date), but DB may store timestamps
-    // a day ahead in UTC (e.g., 11pm EST = 4am UTC next day)
-    end.setUTCDate(end.getUTCDate() + 1);
-    end.setUTCHours(23, 59, 59, 999);
+    const start = startOfDay(new Date(startDate));
+    const end = endOfDay(new Date(endDate));
 
 
     // 1. Revenue: sum of PAID invoices in the period
@@ -209,10 +205,8 @@ export type ClientMargin = {
 export async function getClientMargins(startDate: string, endDate: string): Promise<ClientMargin[]> {
     const { organizationId } = await withTenantScope();
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setUTCDate(end.getUTCDate() + 1);
-    end.setUTCHours(23, 59, 59, 999);
+    const start = startOfDay(new Date(startDate));
+    const end = endOfDay(new Date(endDate));
 
     // Get all paid invoices in the period grouped by contact based on paidAt (Cash Basis)
     const paidInvoices = await db.invoice.findMany({

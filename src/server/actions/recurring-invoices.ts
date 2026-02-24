@@ -282,17 +282,24 @@ function calculateNextRunDate(current: Date, frequency: RecurringFrequency, inte
 
 function fastForwardNextRunDate(start: Date, frequency: RecurringFrequency, interval: number): Date {
     const now = startOfDay(new Date());
-    let next = new Date(start);
+    let candidate = new Date(start);
 
     // If the start date is today or in the future, that's our first run
-    if (!isPast(next) || isToday(next)) {
-        return next;
+    if (!isPast(candidate) || isToday(candidate)) {
+        return candidate;
     }
 
-    // Fast forward until we reach a date that is today or in the future
-    while (isPast(next) && !isToday(next)) {
-        next = calculateNextRunDate(next, frequency, interval);
+    // Fast forward until we reach the LATEST date that is still <= today
+    while (true) {
+        let next = calculateNextRunDate(candidate, frequency, interval);
+        // If the next occurrence is still in the past or is today, it becomes our new candidate
+        if (isPast(next) || isToday(next)) {
+            candidate = next;
+        } else {
+            // The next occurrence is in the future, so our current candidate is the most recent one
+            break;
+        }
     }
 
-    return next;
+    return candidate;
 }
