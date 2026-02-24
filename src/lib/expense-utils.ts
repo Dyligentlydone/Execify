@@ -61,3 +61,14 @@ export function expandRecurringExpenses<T extends { date: Date; type: string; fr
 
     return expanded.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
+
+export function calculateNextRunDate(current: Date, frequency: string, interval: number): Date {
+    const next = new Date(current);
+    switch (frequency) {
+        case "DAILY": return addDays(next, interval);
+        case "WEEKLY": return addWeeks(next, interval);
+        case "MONTHLY": return addMonths(next, interval);
+        case "YEARLY": return addYears(next, interval);
+        default: return next;
+    }
+}
