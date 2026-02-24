@@ -23,20 +23,20 @@ export type PnLData = {
 export async function getPnLData(startDate: string, endDate: string): Promise<PnLData> {
     const { organizationId } = await withTenantScope();
 
-    const start = startOfDay(new Date(startDate));
-    const end = endOfDay(new Date(endDate));
+    const start = new Date(`${startDate}T00:00:00Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
 
 
     // 1. Revenue: sum of PAID invoices in the period
-    // Filtering by dueDate as this aligns perfectly with the user's mental model of "when the revenue is considered earned"
+    // Filtering by issueDate aligns with the user's mental model of when the service month is recognized
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
-            dueDate: { gte: start, lte: end },
+            issueDate: { gte: start, lte: end },
         },
         include: { contact: true },
-        orderBy: { dueDate: "desc" },
+        orderBy: { issueDate: "desc" },
     });
 
     // 1b. Projected Revenue: active recurring invoices
@@ -50,19 +50,15 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     });
 
     const projectedRecurring = expandRecurringExpenses(
-        rawRecurring.map(ri => {
-            // The projected future invoice has an expected due date shifted by one interval from its issue date
-            const projectedDueDate = calculateNextRunDate(ri.nextRunDate, ri.frequency as any, ri.interval);
-            return {
-                id: ri.id,
-                date: projectedDueDate,
-                type: "RECURRING",
-                isActive: true,
-                frequency: ri.frequency,
-                interval: ri.interval,
-                amount: ri.total
-            };
-        }),
+        rawRecurring.map(ri => ({
+            id: ri.id,
+            date: ri.nextRunDate, // Use nextRunDate directly for projection issue dates
+            type: "RECURRING",
+            isActive: true,
+            frequency: ri.frequency,
+            interval: ri.interval,
+            amount: ri.total
+        })),
         start,
         end
     );
@@ -82,9 +78,9 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
             if (inv.contactId !== recurringPlan.contactId) return false;
             if (Math.abs(Number(inv.total) - Number(proj.amount)) > 0.01) return false;
 
-            // We group projected deduplication by month of dueDate now
-            if (!inv.dueDate) return false;
-            const invMonth = `${inv.dueDate.getFullYear()}-${inv.dueDate.getMonth()}`;
+            // We group projected deduplication by month of issueDate now
+            if (!inv.issueDate) return false;
+            const invMonth = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
             return invMonth === projMonth;
         });
 
