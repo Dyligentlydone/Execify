@@ -30,21 +30,42 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
 
 
     // 1. Revenue: sum of PAID invoices in the period
-    // Use paidAt if available, otherwise fall back to createdAt for older invoices
+    // Update: use issueDate for Accrual Basis (when the work was billed)
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
-            OR: [
-                { paidAt: { gte: start, lte: end } },
-                { paidAt: null, createdAt: { gte: start, lte: end } },
-            ],
+            issueDate: { gte: start, lte: end },
         },
         include: { contact: true },
-        orderBy: { paidAt: "desc" },
+        orderBy: { issueDate: "desc" },
     });
 
-    const revenue = paidInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
+    // 1b. Projected Revenue: active recurring invoices
+    const rawRecurring = await db.recurringInvoice.findMany({
+        where: {
+            organizationId,
+            status: "ACTIVE"
+        }
+    });
+
+    const projectedRecurring = expandRecurringExpenses(
+        rawRecurring.map(ri => ({
+            id: ri.id,
+            date: ri.nextRunDate,
+            type: "RECURRING",
+            isActive: true,
+            frequency: ri.frequency,
+            interval: ri.interval,
+            amount: ri.total // map total to amount for expansion compat
+        })),
+        start,
+        end
+    );
+
+    const actualRevenue = paidInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
+    const projectedRevenue = projectedRecurring.reduce((sum, ri) => sum + Number(ri.amount), 0);
+    const revenue = actualRevenue + projectedRevenue;
 
     // 2. Expenses: sum in the period
     const rawExpenses = await db.expense.findMany({
@@ -89,17 +110,22 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     }
 
     for (const inv of paidInvoices) {
-        // Use issueDate if available for the chart to reflect performance, 
-        // fallback to createdAt/paidAt
-        const d = new Date(inv.issueDate || inv.paidAt || inv.createdAt);
+        // Use issueDate reflecting performance
+        const d = new Date(inv.issueDate);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
         if (entry) {
             entry.revenue += Number(inv.total);
-        } else {
-            // If it's outside the current range (e.g. an old invoice paid recently)
-            // but we still want it in the chart, we might need a broader map.
-            // For now, if "Year to Date" is selected, we focus on the year's months.
+        }
+    }
+
+    // Add projected recurring revenue to the chart
+    for (const proj of projectedRecurring) {
+        const d = new Date(proj.date);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const entry = monthlyMap.get(key);
+        if (entry) {
+            entry.revenue += Number(proj.amount);
         }
     }
 
@@ -160,16 +186,13 @@ export async function getClientMargins(startDate: string, endDate: string): Prom
     end.setUTCDate(end.getUTCDate() + 1);
     end.setUTCHours(23, 59, 59, 999);
 
-    // Get all paid invoices in the period grouped by contact
+    // Get all paid invoices in the period grouped by contact based on issueDate
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
             contactId: { not: null },
-            OR: [
-                { paidAt: { gte: start, lte: end } },
-                { paidAt: null, createdAt: { gte: start, lte: end } },
-            ],
+            issueDate: { gte: start, lte: end },
         },
         include: { contact: true },
     });

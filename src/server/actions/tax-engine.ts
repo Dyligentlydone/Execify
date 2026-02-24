@@ -92,6 +92,7 @@ export async function getTaxSummary(year: number) {
     for (const exp of expenses) {
         if (!exp.taxCategory) {
             categorizedExpenses["Uncategorized"].push(exp);
+            totalDeductions += Number(exp.amount);
         } else if (exp.taxCategory && IRS_CATEGORIES.includes(exp.taxCategory as IRSCategory)) {
             categorizedExpenses[exp.taxCategory].push(exp);
 
