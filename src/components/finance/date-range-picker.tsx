@@ -45,7 +45,7 @@ function getPresets(): DateRange[] {
         {
             label: "Year to Date",
             startDate: format(startOfYear(now), "yyyy-MM-dd"),
-            endDate: format(now, "yyyy-MM-dd"),
+            endDate: format(endOfMonth(now), "yyyy-MM-dd"),
         },
         {
             label: "Last Year",

@@ -19,7 +19,10 @@ const createRecurringSchema = z.object({
     contactId: z.string().min(1, "Customer is required"),
     frequency: z.nativeEnum(RecurringFrequency),
     interval: z.coerce.number().min(1).default(1),
-    startDate: z.string().min(1).transform((str) => new Date(str)),
+    startDate: z.string().min(1).transform((str) => {
+        const d = new Date(str + "T12:00:00Z");
+        return d;
+    }),
     items: z.array(recurringItemSchema).min(1, "At least one item is required"),
     notes: z.string().optional(),
 });
@@ -214,10 +217,14 @@ export async function processRecurringBilling() {
 
                 // 2. Update nextRunDate
                 const intendedDate = new Date(template.nextRunDate);
-                const nextDate = calculateNextRunDate(template.nextRunDate, template.frequency, template.interval);
+                intendedDate.setUTCHours(12, 0, 0, 0); // Ensure Noon UTC
+
+                const nextDate = calculateNextRunDate(intendedDate, template.frequency, template.interval);
+                nextDate.setUTCHours(12, 0, 0, 0); // Keep Noon UTC
 
                 // 2b. Calculate the next-next date for the due date (billed for next month)
                 const dueDate = calculateNextRunDate(intendedDate, template.frequency, template.interval);
+                dueDate.setUTCHours(12, 0, 0, 0); // Keep Noon UTC
 
                 await tx.invoice.create({
                     data: {
@@ -283,6 +290,7 @@ function calculateNextRunDate(current: Date, frequency: RecurringFrequency, inte
 function fastForwardNextRunDate(start: Date, frequency: RecurringFrequency, interval: number): Date {
     const now = startOfDay(new Date());
     let candidate = new Date(start);
+    candidate.setUTCHours(12, 0, 0, 0); // Normalise to Noon UTC
 
     // If the start date is today or in the future, that's our first run
     if (!isPast(candidate) || isToday(candidate)) {
@@ -292,6 +300,8 @@ function fastForwardNextRunDate(start: Date, frequency: RecurringFrequency, inte
     // Fast forward until we reach the LATEST date that is still <= today
     while (true) {
         let next = calculateNextRunDate(candidate, frequency, interval);
+        next.setUTCHours(12, 0, 0, 0); // Keep Noon UTC
+
         // If the next occurrence is still in the past or is today, it becomes our new candidate
         if (isPast(next) || isToday(next)) {
             candidate = next;
