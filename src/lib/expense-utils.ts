@@ -1,34 +1,44 @@
 import { type Expense, RecurringFrequency } from "@/generated/prisma/client";
-import { addDays, addWeeks, addMonths, addYears } from "date-fns";
+import { addDays, addWeeks, addMonths, addYears, startOfDay, endOfDay } from "date-fns";
 
 /**
  * Expands recurring expenses into individual occurrences within a given date range.
  * One-time expenses are returned as-is (if they fall within the range).
  */
-export function expandRecurringExpenses<T extends Expense>(expenses: T[], rangeStart: Date, rangeEnd: Date): T[] {
+export function expandRecurringExpenses<T extends { date: Date; type: string; frequency?: RecurringFrequency | null; interval?: number | null; id: string; isActive?: boolean }>(
+    expenses: T[],
+    rangeStart: Date,
+    rangeEnd: Date
+): T[] {
     const expanded: T[] = [];
+    const normalizedStart = startOfDay(rangeStart);
+    const normalizedEnd = endOfDay(rangeEnd);
 
     for (const exp of expenses) {
         if (exp.type === "ONE_TIME") {
-            // One-time expense: only include if within bounds
-            const d = new Date(exp.date);
-            if (d >= rangeStart && d <= rangeEnd) {
+            const d = startOfDay(new Date(exp.date));
+            if (d >= normalizedStart && d <= normalizedEnd) {
                 expanded.push(exp);
             }
-        } else if (exp.type === "RECURRING" && exp.isActive) {
-            // Recurring expense
-            let current = new Date(exp.date);
+        } else if (exp.type === "RECURRING" && (exp.isActive !== false)) {
+            // Start projecting from the expense's date
+            // We clone it to avoid mutation
+            let current = startOfDay(new Date(exp.date));
             const freq = exp.frequency;
             const interval = exp.interval || 1;
 
             if (!freq) continue;
 
             // Generate occurrences until we pass the rangeEnd
-            while (current <= rangeEnd) {
-                if (current >= rangeStart) {
+            // Note: If the expense started in the future, it correctly generates nothing for the current period.
+            // If it started in the past, it catches up.
+            let safety = 0;
+            while (current <= normalizedEnd && safety < 1000) {
+                safety++;
+                if (current >= normalizedStart) {
                     expanded.push({
                         ...exp,
-                        id: `${exp.id}-${current.getTime()}`, // unique ID for the occurrence
+                        id: `${exp.id}-${current.getTime()}`,
                         date: new Date(current),
                     });
                 }
@@ -43,12 +53,11 @@ export function expandRecurringExpenses<T extends Expense>(expenses: T[], rangeS
                 } else if (freq === "YEARLY") {
                     current = addYears(current, interval);
                 } else {
-                    break; // unknown frequency
+                    break;
                 }
             }
         }
     }
 
-    // Sort by date ascending to keep it predictable
     return expanded.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

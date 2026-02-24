@@ -74,6 +74,8 @@ export async function getTaxSummary(year: number) {
         }
     });
 
+    // For taxes, we always want to project the full year's recurring expenses
+    // to give the user a complete annual estimate.
     const expenses = expandRecurringExpenses(rawExpenses, startDate, endDate);
 
     // Group expenses by Tax Category

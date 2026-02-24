@@ -76,25 +76,41 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     const monthlyMap = new Map<string, { revenue: number; expenses: number }>();
 
     // Initialize months in range
-    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    while (cursor <= end) {
+    // For "Year to Date" or any range starting in January, let's always show all 12 months 
+    // to give a "full year" perspective of the chart.
+    const startCursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    const endCursor = (start.getMonth() === 0) ? new Date(start.getFullYear(), 11, 31) : end;
+
+    const cursor = new Date(startCursor);
+    while (cursor <= endCursor) {
         const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
         monthlyMap.set(key, { revenue: 0, expenses: 0 });
         cursor.setMonth(cursor.getMonth() + 1);
     }
 
     for (const inv of paidInvoices) {
-        const d = new Date(inv.paidAt || inv.createdAt);
+        // Use issueDate if available for the chart to reflect performance, 
+        // fallback to createdAt/paidAt
+        const d = new Date(inv.issueDate || inv.paidAt || inv.createdAt);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
-        if (entry) entry.revenue += Number(inv.total);
+        if (entry) {
+            entry.revenue += Number(inv.total);
+        } else {
+            // If it's outside the current range (e.g. an old invoice paid recently)
+            // but we still want it in the chart, we might need a broader map.
+            // For now, if "Year to Date" is selected, we focus on the year's months.
+        }
     }
 
     for (const exp of expenses) {
+        // Map to the month of the occurrence
         const d = new Date(exp.date);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
-        if (entry) entry.expenses += Number(exp.amount);
+        if (entry) {
+            entry.expenses += Number(exp.amount);
+        }
     }
 
     const monthlyBreakdown = Array.from(monthlyMap.entries())
