@@ -207,16 +207,16 @@ export type ClientMargin = {
 export async function getClientMargins(startDate: string, endDate: string): Promise<ClientMargin[]> {
     const { organizationId } = await withTenantScope();
 
-    const start = startOfDay(new Date(startDate));
-    const end = endOfDay(new Date(endDate));
+    const start = new Date(`${startDate}T00:00:00Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
 
-    // Get all paid invoices in the period grouped by contact based on paidAt (Cash Basis)
+    // Get all paid invoices in the period grouped by contact based on issueDate
     const paidInvoices = await db.invoice.findMany({
         where: {
             organizationId,
             status: "PAID",
             contactId: { not: null },
-            paidAt: { gte: start, lte: end },
+            issueDate: { gte: start, lte: end },
         },
         include: { contact: true },
     });

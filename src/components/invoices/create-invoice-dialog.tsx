@@ -209,8 +209,8 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                                     className={cn(
                                                         "px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300",
                                                         !field.value
-                                                            ? "bg-gradient-to-r from-amber-200 to-yellow-500 text-black shadow-md scale-105"
-                                                            : "text-muted-foreground hover:text-foreground"
+                                                            ? "gold-surface text-black shadow-md scale-105"
+                                                            : "border border-[#EABC51]/40 text-muted-foreground hover:text-foreground hover:border-[#EABC51]/60"
                                                     )}
                                                 >
                                                     Single
@@ -221,8 +221,8 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                                     className={cn(
                                                         "px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300",
                                                         field.value
-                                                            ? "bg-gradient-to-r from-amber-200 to-yellow-500 text-black shadow-md scale-105"
-                                                            : "text-muted-foreground hover:text-foreground"
+                                                            ? "gold-surface text-black shadow-md scale-105"
+                                                            : "border border-[#EABC51]/40 text-muted-foreground hover:text-foreground hover:border-[#EABC51]/60"
                                                     )}
                                                 >
                                                     Recurring
