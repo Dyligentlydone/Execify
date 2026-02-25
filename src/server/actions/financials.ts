@@ -134,8 +134,8 @@ export async function getPnLData(startDate: string, endDate: string): Promise<Pn
     }
 
     for (const inv of paidInvoices) {
-        // Use paidAt for Cash Basis
-        const d = new Date(inv.paidAt!);
+        // Use issueDate to align with how we query and recognize the service month
+        const d = new Date(inv.issueDate!);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const entry = monthlyMap.get(key);
         if (entry) {

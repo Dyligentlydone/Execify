@@ -8,6 +8,7 @@ import { getPnLData } from "@/server/actions/financials";
 import { createContact } from "@/server/actions/contacts";
 import { createInvoice } from "@/server/actions/invoices";
 import { createExpense } from "@/server/actions/expenses";
+import { getDeals, createDeal, updateDeal } from "@/server/actions/deals";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -78,7 +79,8 @@ You have strict access to the user's financial and CRM data through your tools.
 - NEVER make up numbers.
 - If they ask for financial summaries, use the getFinancialSummary tool. 
 - If they ask to log an expense, use the logExpense tool.
-- If they ask to create an invoice, use the createInvoice tool. They MUST identify the customer, the items, and the pricing, ask for it if it's missing. Never invent an invoice.
+- If they ask to create an invoice, use the createInvoice tool. If for a new customer, use createContact first to get the contactId. They MUST identify the customer, the items, and the pricing, ask for it if it's missing. Never invent an invoice.
+- If they ask about or to manage deals, ALWAYS use the getDealsData tool first to find exactly which stage IDs and deal IDs to use. If adding a deal for a new customer, use the createContact tool first to generate the contactId, then use createDeal.
 - Always be professional, crisp, and exact with numbers.
         `.trim();
 
@@ -168,6 +170,60 @@ You have strict access to the user's financial and CRM data through your tools.
                         formData.append("items", JSON.stringify(args.items));
 
                         const res = await createInvoice(formData);
+                        return res;
+                    }
+                }) as any,
+                getDealsData: tool({
+                    description: "Get all deals and deal stages to find correct IDs.",
+                    inputSchema: z.object({}),
+                    execute: async () => {
+                        return await getDeals();
+                    }
+                }) as any,
+                createDeal: tool({
+                    description: "Create a new deal.",
+                    inputSchema: z.object({
+                        title: z.string(),
+                        value: z.number().optional(),
+                        stageId: z.string().describe("Must be an exact stage ID from getDealsData"),
+                        contactId: z.string().optional(),
+                        probability: z.number().optional(),
+                        expectedCloseDate: z.string().optional().describe("ISO date string")
+                    }).strict(),
+                    execute: async (args: any) => {
+                        const formData = new FormData();
+                        formData.append("title", args.title);
+                        formData.append("stageId", args.stageId);
+                        if (args.value !== undefined) formData.append("value", args.value.toString());
+                        if (args.contactId) formData.append("contactId", args.contactId);
+                        if (args.probability !== undefined) formData.append("probability", args.probability.toString());
+                        if (args.expectedCloseDate) formData.append("expectedCloseDate", args.expectedCloseDate);
+
+                        const res = await createDeal(formData);
+                        return res;
+                    }
+                }) as any,
+                updateDeal: tool({
+                    description: "Update an existing deal. You MUST pass the existing title if not updating the title.",
+                    inputSchema: z.object({
+                        dealId: z.string().describe("Must be an exact deal ID from getDealsData"),
+                        title: z.string().describe("The new or existing title of the deal"),
+                        value: z.number().optional(),
+                        stageId: z.string().optional(),
+                        contactId: z.string().optional(),
+                        probability: z.number().optional(),
+                        expectedCloseDate: z.string().optional().describe("ISO date string")
+                    }).strict(),
+                    execute: async (args: any) => {
+                        const formData = new FormData();
+                        formData.append("title", args.title);
+                        if (args.stageId) formData.append("stageId", args.stageId);
+                        if (args.value !== undefined) formData.append("value", args.value.toString());
+                        if (args.contactId) formData.append("contactId", args.contactId);
+                        if (args.probability !== undefined) formData.append("probability", args.probability.toString());
+                        if (args.expectedCloseDate) formData.append("expectedCloseDate", args.expectedCloseDate);
+
+                        const res = await updateDeal(args.dealId, formData);
                         return res;
                     }
                 }) as any
