@@ -64,26 +64,15 @@ export async function POST(req: Request) {
             });
         }
 
-        // Check if this is a relatively new conversation (< 3 messages)
-        const msgCount = await db.aIMessage.count({
-            where: { conversationId: activeConvId }
-        });
-        const isNewUserOrConversation = msgCount < 3;
-
         // Construct System Prompt
         const systemPrompt = `
 You are Execufy AI, an expert virtual CFO and business manager.
 You are assisting a user from the organization: "${org.name}".
 
-${isNewUserOrConversation ? `
-CRITICAL INSTRUCTION: This user appears to be new or starting a fresh session. 
-Before diving into complex tasks, you MUST proactively ask 2-3 brief questions to understand their specific business.
-For example:
-- What industry are they in?
-- What are their primary services or products?
-- Who is their typical client?
-Keep it conversational and friendly. Do not overwhelm them with questions.
-` : `You have already established context with this user. Be direct and helpful.`}
+Today's date is: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.
+The current ISO date is: ${new Date().toISOString().split('T')[0]}.
+When the user asks for "YTD" (Year-to-Date), use January 1st of the current year to today.
+When the user asks for "Last Month", calculate exactly the previous month's start and end dates.
 
 You have strict access to the user's financial and CRM data through your tools.
 - NEVER make up numbers.
