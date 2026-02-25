@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Info } from "lucide-react";
 import type { ClientMargin } from "@/server/actions/financials";
 import { getClientMargins } from "@/server/actions/financials";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat("en-US", {
@@ -34,7 +35,19 @@ export function ClientMarginsSection({
             <div className="rounded-xl border bg-card p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <Users className="h-5 w-5 text-indigo-400" />
-                    <h3 className="text-lg font-semibold">Client Margins</h3>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                        Client Margins
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-[250px]">
+                                    <p>Shows actual profitability per client based strictly on <b>Paid</b> invoices minus incurred expenses. <b>Projected income is not included.</b></p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </h3>
                 </div>
                 <div className="animate-pulse space-y-3">
                     {[1, 2, 3].map((i) => (
@@ -49,7 +62,19 @@ export function ClientMarginsSection({
         <div className="rounded-xl border bg-card p-6">
             <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-indigo-400" />
-                <h3 className="text-lg font-semibold">Client Margins</h3>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                    Client Margins
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-[250px] leading-relaxed">
+                                <p>Shows actual profitability per client based strictly on <b>Paid</b> invoices minus incurred expenses. <b>Projected income is not included.</b></p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </h3>
                 <span className="text-xs text-muted-foreground ml-auto">
                     Profit per client
                 </span>
@@ -104,8 +129,8 @@ export function ClientMarginsSection({
                             {/* Profit */}
                             <div
                                 className={`text-right text-sm font-mono font-semibold flex items-center justify-end gap-1 ${client.profit >= 0
-                                        ? "text-green-400"
-                                        : "text-red-400"
+                                    ? "text-green-400"
+                                    : "text-red-400"
                                     }`}
                             >
                                 {client.profit >= 0 ? (
@@ -120,12 +145,12 @@ export function ClientMarginsSection({
                             <div className="text-right">
                                 <span
                                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${client.margin >= 50
-                                            ? "bg-green-500/20 text-green-400"
-                                            : client.margin >= 20
-                                                ? "bg-yellow-500/20 text-yellow-400"
-                                                : client.margin >= 0
-                                                    ? "bg-orange-500/20 text-orange-400"
-                                                    : "bg-red-500/20 text-red-400"
+                                        ? "bg-green-500/20 text-green-400"
+                                        : client.margin >= 20
+                                            ? "bg-yellow-500/20 text-yellow-400"
+                                            : client.margin >= 0
+                                                ? "bg-orange-500/20 text-orange-400"
+                                                : "bg-red-500/20 text-red-400"
                                         }`}
                                 >
                                     {client.margin}%
