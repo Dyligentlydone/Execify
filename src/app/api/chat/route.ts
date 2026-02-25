@@ -65,6 +65,20 @@ export async function POST(req: Request) {
             });
         }
 
+        // Fetch memory: last 25 messages from the user's PAST conversations (excluding current)
+        const pastMessages = await db.aIMessage.findMany({
+            where: {
+                conversation: { userId: user.id },
+                conversationId: { not: activeConvId }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 25,
+            select: { role: true, content: true }
+        });
+
+        // Format them chronologically (oldest to newest)
+        const memoryContext = pastMessages.reverse().map(m => `${m.role}: ${m.content}`).join('\n');
+
         // Construct System Prompt
         const systemPrompt = `
 You are Execufy AI, an expert virtual CFO and business manager.
@@ -75,6 +89,11 @@ The current ISO date is: ${new Date().toISOString().split('T')[0]}.
 When the user asks for "YTD" (Year-to-Date), use January 1st of the current year to today.
 When the user asks for "Last Month", calculate exactly the previous month's start and end dates.
 
+=== MEMORY CONTEXT ===
+The following are the last 25 messages from your previous sessions with this user. Use this context to understand references to past actions or ongoing topics, but do not repeat or summarize this information unless explicitly asked.
+${memoryContext || "No previous sessions found."}
+======================
+
 You have strict access to the user's financial and CRM data through your tools.
 - NEVER make up numbers.
 - If they ask for financial summaries, use the getFinancialSummary tool. 
@@ -82,6 +101,7 @@ You have strict access to the user's financial and CRM data through your tools.
 - If they ask to create an invoice, use the createInvoice tool. If for a new customer, use createContact first to get the contactId. They MUST identify the customer, the items, and the pricing, ask for it if it's missing. Never invent an invoice.
 - If they ask about or to manage deals, ALWAYS use the getDealsData tool first to find exactly which stage IDs and deal IDs to use. If adding a deal for a new customer, use the createContact tool first to generate the contactId, then use createDeal.
 - Always be professional, crisp, and exact with numbers.
+- Keep responses natural and conversational. Do NOT use markdown headers like \`###\` or overly formal structures unless you are returning a complex table of data. Do NOT summarize or repeat past conversational turns. Only directly answer the user's immediate request.
         `.trim();
 
         // Sanitize the history payload to strip broken blank messages before they crash OpenAI's schema validation

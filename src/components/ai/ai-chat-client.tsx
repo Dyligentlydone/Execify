@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef, useState } from "react";
 
-export function AIChatClient({ initialConversationId }: { initialConversationId?: string }) {
+export function AIChatClient({ initialConversationId, initialMessages }: { initialConversationId?: string, initialMessages?: any[] }) {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { messages, sendMessage, status } = useChat({
+        initialMessages,
         transport: new DefaultChatTransport({ api: "/api/chat", body: { conversationId: initialConversationId } }),
-    });
+    } as any);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

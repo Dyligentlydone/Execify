@@ -5,7 +5,8 @@ import { db } from "@/lib/db";
 import { PLANS } from "@/lib/stripe";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AIChatClient } from "@/components/ai/ai-chat-client";
+import { AIChatLayout } from "@/components/ai/ai-chat-layout";
+import { getChatHistory } from "@/server/actions/ai";
 
 export default async function AIPage() {
     const user = await getCurrentUser();
@@ -56,7 +57,7 @@ export default async function AIPage() {
             </div>
 
             {/* Chat Interface */}
-            <AIChatClient />
+            <AIChatLayout history={await getChatHistory()} />
         </div>
     );
 }
