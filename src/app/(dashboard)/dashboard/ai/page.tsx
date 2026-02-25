@@ -1,12 +1,11 @@
-import { Bot, Send, Lock, Sparkles } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PLANS } from "@/lib/stripe";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AIChatClient } from "@/components/ai/ai-chat-client";
 
 export default async function AIPage() {
     const user = await getCurrentUser();
@@ -47,7 +46,7 @@ export default async function AIPage() {
     }
 
     return (
-        <div className="flex h-[calc(100vh-10rem)] flex-col">
+        <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col">
             {/* Header */}
             <div className="mb-6">
                 <h2 className="text-2xl font-bold tracking-tight">AI Assistant</h2>
@@ -56,45 +55,8 @@ export default async function AIPage() {
                 </p>
             </div>
 
-            {/* Chat Area */}
-            <Card className="flex-1 border-border/50 flex flex-col overflow-hidden">
-                <div className="flex-1 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 flex items-center justify-center relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-
-                    <div className="text-center space-y-6 max-w-lg z-10">
-                        <div className="relative mx-auto w-24 h-24">
-                            <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping duration-[3000ms]" />
-                            <div className="absolute inset-0 rounded-full bg-amber-500/10 animate-pulse duration-[2000ms]" />
-                            <div className="relative bg-gradient-to-br from-[#462523] to-[#cb9b51] rounded-full w-24 h-24 flex items-center justify-center shadow-xl border border-amber-500/30">
-                                <Sparkles className="h-10 w-10 text-white animate-pulse" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-semibold tracking-tight">How can I help you today?</h2>
-                            <p className="text-muted-foreground">
-                                Try asking about "Q3 Revenue" or "Top Performing Clients"
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Input */}
-                <div className="border-t border-border p-4">
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Ask Execufy AI anything..."
-                            className="flex-1 bg-muted/50 border-none"
-                        />
-                        <Button
-                            size="icon"
-                            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shrink-0"
-                        >
-                            <Send className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            </Card>
+            {/* Chat Interface */}
+            <AIChatClient />
         </div>
     );
 }
