@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash, Calculator, Repeat } from "lucide-react";
+import { Loader2, Plus, Trash, Calculator, Repeat, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -33,7 +33,20 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { createInvoice } from "@/server/actions/invoices";
 import { createRecurringInvoice } from "@/server/actions/recurring-invoices";
 import type { Contact } from "@/generated/prisma/client";
@@ -67,6 +80,7 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showContactForm, setShowContactForm] = useState(false);
+    const [contactPopoverOpen, setContactPopoverOpen] = useState(false);
     const [localContacts, setLocalContacts] = useState<Contact[]>(contacts);
 
     // Sync local contacts if prop changes
@@ -177,21 +191,43 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                 control={form.control}
                                 name="isRecurring"
                                 render={({ field }) => (
-                                    <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <FormItem className="col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
                                         <div className="space-y-0.5">
                                             <FormLabel className="text-base flex items-center">
                                                 <Repeat className="w-4 h-4 mr-2 text-primary" />
-                                                Make this a recurring invoice
+                                                Invoice Type
                                             </FormLabel>
                                             <FormDescription>
-                                                Automatically generate this invoice on a schedule.
+                                                Choose between a single or recurring invoice.
                                             </FormDescription>
                                         </div>
                                         <FormControl>
-                                            <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
+                                            <div className="flex items-center p-1 bg-muted/50 rounded-full w-fit border border-border/50">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => field.onChange(false)}
+                                                    className={cn(
+                                                        "px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300",
+                                                        !field.value
+                                                            ? "bg-gradient-to-r from-amber-200 to-yellow-500 text-black shadow-md scale-105"
+                                                            : "text-muted-foreground hover:text-foreground"
+                                                    )}
+                                                >
+                                                    Single
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => field.onChange(true)}
+                                                    className={cn(
+                                                        "px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300",
+                                                        field.value
+                                                            ? "bg-gradient-to-r from-amber-200 to-yellow-500 text-black shadow-md scale-105"
+                                                            : "text-muted-foreground hover:text-foreground"
+                                                    )}
+                                                >
+                                                    Recurring
+                                                </button>
+                                            </div>
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -219,38 +255,87 @@ export function CreateInvoiceDialog({ contacts, isReadOnly }: { contacts: Contac
                                     control={form.control}
                                     name="contactId"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <div className="flex items-center justify-between">
-                                                <FormLabel>Customer</FormLabel>
-                                                <Button
-                                                    type="button"
-                                                    variant="link"
-                                                    className="h-auto p-0 text-xs text-primary"
-                                                    onClick={() => setShowContactForm(!showContactForm)}
-                                                >
-                                                    {showContactForm ? "Cancel new customer" : "+ New customer"}
-                                                </Button>
-                                            </div>
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Customer</FormLabel>
                                             {!showContactForm ? (
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select customer" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {localContacts.map((contact) => (
-                                                            <SelectItem key={contact.id} value={contact.id}>
-                                                                {contact.firstName} {contact.lastName} {contact.company ? `(${contact.company})` : ""}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                <Popover open={contactPopoverOpen} onOpenChange={setContactPopoverOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant="outline"
+                                                                role="combobox"
+                                                                aria-expanded={contactPopoverOpen}
+                                                                className={cn(
+                                                                    "w-full justify-between",
+                                                                    !field.value && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                {field.value
+                                                                    ? `${localContacts.find((c) => c.id === field.value)?.firstName} ${localContacts.find((c) => c.id === field.value)?.lastName}`
+                                                                    : "Select customer..."}
+                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-full sm:w-[310px] p-0" align="start">
+                                                        <Command>
+                                                            <CommandInput placeholder="Search customers..." />
+                                                            <CommandList>
+                                                                <CommandEmpty>No customer found.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    <CommandItem
+                                                                        onSelect={() => {
+                                                                            setShowContactForm(true);
+                                                                            setContactPopoverOpen(false);
+                                                                        }}
+                                                                        className="text-primary font-medium cursor-pointer"
+                                                                    >
+                                                                        <Plus className="mr-2 h-4 w-4" />
+                                                                        + New customer
+                                                                    </CommandItem>
+                                                                    {localContacts.map((contact) => (
+                                                                        <CommandItem
+                                                                            key={contact.id}
+                                                                            value={`${contact.firstName} ${contact.lastName} ${contact.company || ""}`}
+                                                                            onSelect={() => {
+                                                                                form.setValue("contactId", contact.id);
+                                                                                setContactPopoverOpen(false);
+                                                                            }}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    contact.id === field.value
+                                                                                        ? "opacity-100"
+                                                                                        : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            {contact.firstName} {contact.lastName} {contact.company ? `(${contact.company})` : ""}
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
                                             ) : (
-                                                <InlineContactForm
-                                                    onSuccess={handleContactCreated}
-                                                    onCancel={() => setShowContactForm(false)}
-                                                />
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center bg-muted/40 p-2 rounded-t-md">
+                                                        <span className="text-sm font-medium text-muted-foreground">Creating New Customer</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="link"
+                                                            className="h-auto p-0 text-xs text-destructive"
+                                                            onClick={() => setShowContactForm(false)}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                    <InlineContactForm
+                                                        onSuccess={handleContactCreated}
+                                                        onCancel={() => setShowContactForm(false)}
+                                                    />
+                                                </div>
                                             )}
                                             <FormMessage />
                                         </FormItem>
