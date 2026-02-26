@@ -9,6 +9,7 @@ import { createContact } from "@/server/actions/contacts";
 import { createInvoice } from "@/server/actions/invoices";
 import { createExpense } from "@/server/actions/expenses";
 import { getDeals, createDeal, updateDeal } from "@/server/actions/deals";
+import { getTaxSummary } from "@/server/actions/tax-engine";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -97,6 +98,7 @@ ${memoryContext || "No previous sessions found."}
 You have strict access to the user's financial and CRM data through your tools.
 - NEVER make up numbers.
 - If they ask for financial summaries, use the getFinancialSummary tool. 
+- If they ask about taxes, estimated tax owed, deductions, or gross receipts, use the getTaxSummary tool. Always pass the 4-digit year as a number.
 - If they ask to log an expense, use the logExpense tool.
 - If they ask to create an invoice, use the createInvoice tool. If for a new customer, use createContact first to get the contactId. They MUST identify the customer, the items, and the pricing, ask for it if it's missing. Never invent an invoice.
 - If they ask about or to manage deals, ALWAYS use the getDealsData tool first to find exactly which stage IDs and deal IDs to use. If adding a deal for a new customer, use the createContact tool first to generate the contactId, then use createDeal.
@@ -127,6 +129,16 @@ You have strict access to the user's financial and CRM data through your tools.
                     }).strict(),
                     execute: async ({ startDate, endDate }: any) => {
                         const data = await getPnLData(startDate, endDate);
+                        return data;
+                    },
+                }) as any,
+                getTaxSummary: tool({
+                    description: "Get the Schedule C tax summary, total deductions, gross receipts, and estimated tax owed for a given year.",
+                    inputSchema: z.object({
+                        year: z.number().describe("The 4-digit tax year the user is asking about, e.g., 2026")
+                    }).strict(),
+                    execute: async ({ year }: any) => {
+                        const data = await getTaxSummary(year);
                         return data;
                     },
                 }) as any,
