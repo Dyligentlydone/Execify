@@ -47,11 +47,11 @@ export function AIChatLayout({ history }: { history: any[] }) {
                         onValueChange={(v) => setSelectedChatId(v === "new" ? null : v)}
                     >
                         <SelectTrigger className="w-full bg-background border-border/50 shadow-sm">
-                            <SelectValue placeholder="Current or New Session" />
+                            <SelectValue placeholder="Recent Conversations" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             <SelectItem value="new" className="font-semibold text-amber-500">
-                                ✨ Start New Chat
+                                ✨ Active Session
                             </SelectItem>
                             {history.length > 0 && <div className="h-px bg-border my-1" />}
                             {history.map(conv => {
