@@ -12,23 +12,29 @@ import { useEffect, useRef, useState } from "react";
 export function AIChatClient({ initialConversationId, initialMessages }: { initialConversationId?: string, initialMessages?: any[] }) {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { messages, sendMessage, status } = useChat({
+    const { messages, setMessages, sendMessage, status } = useChat({
         initialMessages,
         transport: new DefaultChatTransport({ api: "/api/chat", body: { conversationId: initialConversationId } }),
     } as any);
+
+    // Sync initial messages when switching chats
+    useEffect(() => {
+        if (initialMessages) {
+            setMessages(initialMessages);
+        }
+    }, [initialMessages, setMessages]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    // Force scroll strictly when sending a new message
+    // Force scroll stringly when messages update
     useEffect(() => {
-        if (status === 'submitted') {
-            setTimeout(() => {
-                scrollToBottom();
-            }, 50); // Small delay to let DOM paint the new user message
-        }
-    }, [status]);
+        const timer = setTimeout(() => {
+            scrollToBottom();
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [messages, status]);
 
     const isLoading = status !== "ready" && status !== "error" && status !== undefined;
 
