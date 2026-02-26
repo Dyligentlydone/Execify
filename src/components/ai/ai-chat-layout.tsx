@@ -69,9 +69,9 @@ export function AIChatLayout({ history }: { history: any[] }) {
                                             selectedChatId === conv.id ? "bg-muted shadow-sm ring-1 ring-border/50" : ""
                                         )}
                                     >
-                                        <div className="flex items-center gap-2 text-foreground font-medium truncate">
+                                        <div className="flex items-center gap-2 text-foreground font-medium w-full overflow-hidden">
                                             <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
-                                            <span className="truncate">{preview}</span>
+                                            <span className="flex-1 block truncate">{preview}</span>
                                         </div>
                                         <div className="text-xs text-muted-foreground mt-0.5">
                                             {formatDistanceToNow(new Date(conv.updatedAt), { addSuffix: true })}

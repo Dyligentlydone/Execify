@@ -57,7 +57,9 @@ export default async function AIPage() {
             </div>
 
             {/* Chat Interface */}
-            <AIChatLayout history={await getChatHistory()} />
+            <div className="flex-1 min-h-0">
+                <AIChatLayout history={await getChatHistory()} />
+            </div>
         </div>
     );
 }
