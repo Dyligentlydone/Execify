@@ -51,7 +51,7 @@ export function AIChatLayout({ history }: { history: any[] }) {
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             <SelectItem value="new" className="font-semibold text-amber-500">
-                                ✨ Active Session
+                                Conversations
                             </SelectItem>
                             {history.length > 0 && <div className="h-px bg-border my-1" />}
                             {history.map(conv => {
