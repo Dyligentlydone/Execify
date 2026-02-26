@@ -51,12 +51,12 @@ export async function getTaxSummary(year: number) {
         where: {
             organizationId: user.organizationId!,
             status: "PAID",
-            paidAt: {
+            issueDate: {
                 gte: startDate,
                 lte: endDate
             }
         },
-        select: { total: true, recurringInvoiceId: true, paidAt: true }
+        select: { total: true, recurringInvoiceId: true, issueDate: true }
     });
 
     const actualRevenue = paidInvoicesResult.reduce((sum, inv) => sum + Number(inv.total), 0);
@@ -96,8 +96,8 @@ export async function getTaxSummary(year: number) {
         const recurringId = proj.id.split('-')[0];
 
         const alreadyPaidInMonth = paidInvoicesResult.some(inv => {
-            if (inv.recurringInvoiceId !== recurringId || !inv.paidAt) return false;
-            const paidMonthKey = `${inv.paidAt.getFullYear()}-${inv.paidAt.getMonth()}`;
+            if (inv.recurringInvoiceId !== recurringId || !inv.issueDate) return false;
+            const paidMonthKey = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
             return paidMonthKey === projMonthKey;
         });
 
@@ -136,7 +136,7 @@ export async function getTaxSummary(year: number) {
     for (const exp of expenses) {
         if (!exp.taxCategory) {
             categorizedExpenses["Uncategorized"].push(exp);
-            totalDeductions += Number(exp.amount);
+            // DO NOT deduct uncategorized expenses
         } else if (exp.taxCategory && IRS_CATEGORIES.includes(exp.taxCategory as IRSCategory)) {
             categorizedExpenses[exp.taxCategory].push(exp);
 
@@ -160,10 +160,18 @@ export async function getTaxSummary(year: number) {
             .filter(([, exps]) => exps.length > 0)
             .map(([cat, exps]) => [
                 cat,
-                exps.map((e) => ({
-                    ...e,
-                    amount: Number(e.amount)
-                }))
+                exps.map((e) => {
+                    const amount = Number(e.amount);
+                    let deductibleAmount = amount;
+                    if (cat === "Uncategorized") deductibleAmount = 0;
+                    else if (cat === "Meals (50% limit)") deductibleAmount = amount * 0.5;
+
+                    return {
+                        ...e,
+                        amount,
+                        deductibleAmount
+                    };
+                })
             ])
     );
 

@@ -167,7 +167,8 @@ export function TaxDashboard() {
         csvContent += "Category,Amount\n";
 
         Object.entries(data.categories).forEach(([category, expenses]) => {
-            const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+            const isUncategorized = category === "Uncategorized";
+            const total = expenses.reduce((sum, exp: any) => sum + Number(isUncategorized ? exp.amount : exp.deductibleAmount), 0);
             csvContent += `"${category}",$${total.toFixed(2)}\n`;
         });
 
@@ -395,8 +396,8 @@ export function TaxDashboard() {
                             </div>
                         ) : (
                             Object.entries(data.categories).map(([category, expenses]) => {
-                                const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
                                 const isUncategorized = category === "Uncategorized";
+                                const total = expenses.reduce((sum, exp: any) => sum + Number(isUncategorized ? exp.amount : exp.deductibleAmount), 0);
 
                                 return (
                                     <div key={category} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
