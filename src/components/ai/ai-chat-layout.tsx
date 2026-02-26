@@ -4,16 +4,15 @@ import { useState, useEffect } from "react";
 import { AIChatClient } from "./ai-chat-client";
 import { getConversationMessages } from "@/server/actions/ai";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 export function AIChatLayout({ history }: { history: any[] }) {
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
     const [initialMessages, setInitialMessages] = useState<any[]>([]);
     const [isLoadingChat, setIsLoadingChat] = useState(false);
-    const [chatKey, setChatKey] = useState(0); // For forcing re-render of AIChatClient
+    const [chatKey, setChatKey] = useState(0);
 
     useEffect(() => {
         if (!selectedChatId) {
@@ -39,60 +38,58 @@ export function AIChatLayout({ history }: { history: any[] }) {
     }, [selectedChatId]);
 
     return (
-        <div className="flex h-full min-h-0 relative gap-4 rounded-xl border border-border/50 bg-card overflow-hidden">
-            {/* Sidebar */}
-            <div className="w-64 border-r border-border/50 bg-muted/20 flex flex-col hidden md:flex shrink-0">
-                <div className="p-4 border-b border-border/50">
-                    <Button
-                        onClick={() => setSelectedChatId(null)}
-                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white border-0 shadow-sm"
+        <div className="flex flex-col h-full min-h-0 relative gap-0 rounded-xl border border-border/50 bg-card overflow-hidden">
+            {/* Top Toolbar for History */}
+            <div className="flex items-center justify-between p-3 border-b border-border/50 bg-muted/20 shrink-0 gap-4">
+                <div className="w-[350px] max-w-full">
+                    <Select
+                        value={selectedChatId || "new"}
+                        onValueChange={(v) => setSelectedChatId(v === "new" ? null : v)}
                     >
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Chat
-                    </Button>
-                </div>
-                <ScrollArea className="flex-1 p-2">
-                    <div className="space-y-1">
-                        {history.length === 0 ? (
-                            <div className="text-xs text-muted-foreground text-center pt-8 p-4">
-                                No previous conversations.
-                            </div>
-                        ) : (
-                            history.map(conv => {
-                                const preview = conv.messages[0]?.content || "New Conversation";
+                        <SelectTrigger className="w-full bg-background border-border/50 shadow-sm">
+                            <SelectValue placeholder="Current or New Session" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            <SelectItem value="new" className="font-semibold text-amber-500">
+                                ✨ Start New Chat
+                            </SelectItem>
+                            {history.length > 0 && <div className="h-px bg-border my-1" />}
+                            {history.map(conv => {
+                                const previewText = conv.messages[0]?.content || "New Conversation";
+                                const truncated = previewText.length > 35 ? previewText.substring(0, 35) + "..." : previewText;
+                                const timeAgo = formatDistanceToNow(new Date(conv.updatedAt), { addSuffix: true });
+
                                 return (
-                                    <button
-                                        key={conv.id}
-                                        onClick={() => setSelectedChatId(conv.id)}
-                                        className={cn(
-                                            "w-full text-left p-3 rounded-lg text-sm transition-colors hover:bg-muted group relative flex flex-col gap-1",
-                                            selectedChatId === conv.id ? "bg-muted shadow-sm ring-1 ring-border/50" : ""
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2 text-foreground font-medium w-full overflow-hidden">
-                                            <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
-                                            <span className="flex-1 block truncate">{preview}</span>
+                                    <SelectItem key={conv.id} value={conv.id} className="py-2 cursor-pointer">
+                                        <div className="flex flex-col">
+                                            <span className="truncate">{truncated}</span>
+                                            <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
                                         </div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">
-                                            {formatDistanceToNow(new Date(conv.updatedAt), { addSuffix: true })}
-                                        </div>
-                                    </button>
+                                    </SelectItem>
                                 );
-                            })
-                        )}
-                    </div>
-                </ScrollArea>
+                            })}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <Button
+                    onClick={() => setSelectedChatId(null)}
+                    size="sm"
+                    className="bg-muted hover:bg-muted/80 text-foreground border border-border/50 shadow-sm shrink-0 whitespace-nowrap"
+                >
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Chat
+                </Button>
             </div>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-background/50 relative">
+            <div className="flex-1 flex flex-col min-w-0 bg-background/50 relative overflow-hidden">
                 {isLoadingChat ? (
                     <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
                         <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
                     </div>
                 ) : null}
 
-                {/* We pass a key to force complete remount when switching chats to clear the useChat internal state cleanly */}
                 <AIChatClient
                     key={chatKey}
                     initialConversationId={selectedChatId || undefined}

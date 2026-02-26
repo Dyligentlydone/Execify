@@ -6,7 +6,7 @@ import { Send, Sparkles, Bot, User, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// Removed ScrollArea import
 import { useEffect, useRef, useState } from "react";
 
 export function AIChatClient({ initialConversationId, initialMessages }: { initialConversationId?: string, initialMessages?: any[] }) {
@@ -25,7 +25,9 @@ export function AIChatClient({ initialConversationId, initialMessages }: { initi
     }, [initialMessages, setMessages]);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
     };
 
     // Force scroll stringly when messages update
@@ -55,7 +57,7 @@ export function AIChatClient({ initialConversationId, initialMessages }: { initi
 
     return (
         <Card className="flex-1 min-h-0 border-border/50 flex flex-col overflow-hidden bg-card/50 backdrop-blur-sm relative">
-            <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto min-h-0 p-4" ref={scrollRef}>
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center space-y-6 max-w-lg mx-auto text-center pt-20">
                         <div className="relative mx-auto w-24 h-24">
@@ -130,7 +132,7 @@ export function AIChatClient({ initialConversationId, initialMessages }: { initi
                         <div ref={messagesEndRef} className="h-1 flex-shrink-0" style={{ overflowAnchor: "auto" }} />
                     </div>
                 )}
-            </ScrollArea>
+            </div>
 
             {/* Input Form */}
             <div className="p-4 bg-background border-t border-border/50 z-10 shrink-0">
