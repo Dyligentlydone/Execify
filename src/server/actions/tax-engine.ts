@@ -61,51 +61,7 @@ export async function getTaxSummary(year: number) {
 
     const actualRevenue = paidInvoicesResult.reduce((sum, inv) => sum + Number(inv.total), 0);
 
-    // Get Active Recurring Invoices to project future revenue
-    const activeRecurring = await db.recurringInvoice.findMany({
-        where: {
-            organizationId: user.organizationId!,
-            status: "ACTIVE"
-        }
-    });
-
-    // Project revenue until year end
-    // For taxes, we project the REST of the year to give a full-year estimate
-    const now = new Date();
-    const projections = expandRecurringExpenses(
-        activeRecurring.map(ri => ({
-            id: ri.id,
-            date: ri.nextRunDate,
-            type: "RECURRING",
-            isActive: true,
-            frequency: ri.frequency,
-            interval: ri.interval,
-            amount: ri.total
-        })),
-        startDate,
-        endDate
-    );
-
-    // De-duplicate: If an invoice for the same recurring plan was already PAID in that month,
-    // don't count the projection for that month.
-    const filteredProjections = projections.filter(proj => {
-        // Only count projections in the future
-        if (proj.date <= now) return false;
-
-        const projMonthKey = `${proj.date.getFullYear()}-${proj.date.getMonth()}`;
-        const recurringId = proj.id.split('-')[0];
-
-        const alreadyPaidInMonth = paidInvoicesResult.some(inv => {
-            if (inv.recurringInvoiceId !== recurringId || !inv.issueDate) return false;
-            const paidMonthKey = `${inv.issueDate.getFullYear()}-${inv.issueDate.getMonth()}`;
-            return paidMonthKey === projMonthKey;
-        });
-
-        return !alreadyPaidInMonth;
-    });
-
-    const projectedRevenue = filteredProjections.reduce((sum, p) => sum + Number(p.amount), 0);
-    const grossReceipts = actualRevenue + projectedRevenue;
+    const grossReceipts = actualRevenue;
 
     // 2. Get All Expenses for the year
     const rawExpenses = await db.expense.findMany({
@@ -118,9 +74,10 @@ export async function getTaxSummary(year: number) {
         }
     });
 
-    // For taxes, we always want to project the full year's recurring expenses
-    // to give the user a complete annual estimate.
-    const expenses = expandRecurringExpenses(rawExpenses, startDate, endDate);
+    // To ensure accurate Year-To-Date matching, we only expand expenses up to today (or the end of the year, if it's in the past)
+    const now = new Date();
+    const expenseEndDate = now < endDate ? now : endDate;
+    const expenses = expandRecurringExpenses(rawExpenses, startDate, expenseEndDate);
 
     // Group expenses by Tax Category
     const categorizedExpenses: Record<string, typeof expenses> = {
